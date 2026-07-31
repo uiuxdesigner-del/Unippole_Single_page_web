@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as THREE from "three";
 import Lenis from "lenis";
 
 let lenisInstance: Lenis | null = null;

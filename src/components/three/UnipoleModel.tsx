@@ -1,7 +1,10 @@
 "use client";
 
 import { useRef, forwardRef, type ForwardedRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import {
+  useFrame,
+  type ThreeEvent,
+} from "@react-three/fiber";
 import * as THREE from "three";
 
 export interface UnipoleModelProps {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as THREE from "three";
 
 export default function ErrorPage({
   error,

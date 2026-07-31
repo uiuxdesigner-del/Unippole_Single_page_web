@@ -1,8 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import ProposalBanner3D from "./ProposalBanner3D";
 
 type ModuleKey = "400" | "500" | "600" | "800" | "900";
 type ModuleFilter = "all" | ModuleKey;
@@ -19,7 +31,11 @@ type UnipoleVariation = {
   displaySize: string;
   type: string;
   boardType: string;
-  image: string;
+  /*
+   * Optional future variation image.
+   * When omitted, the popup automatically uses the module card image.
+   */
+  image?: string;
 };
 
 export type UnipoleModule = {
@@ -37,12 +53,14 @@ export type UnipoleModule = {
 
 type InventorySectionProps = {
   onViewDetails?: (module: UnipoleModule) => void;
-  onRequestProposal?: () => void;
 };
 
 const FALLBACK_IMAGE = "/images/unipole/hero.webp";
 
-const moduleFilters: Array<{ value: ModuleFilter; label: string }> = [
+const moduleFilters: Array<{
+  value: ModuleFilter;
+  label: string;
+}> = [
   { value: "all", label: "All Modules" },
   { value: "400", label: "400 mm" },
   { value: "500", label: "500 mm" },
@@ -75,7 +93,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "8×5 ft",
         type: "Double Side",
         boardType: "Acrylic Sign Board",
-        image: "/images/unipole/modules/400mm-20ft.webp",
       },
       {
         id: "400-30",
@@ -89,7 +106,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "10×5 ft",
         type: "Double Side",
         boardType: "Acrylic Sign Board",
-        image: "/images/unipole/modules/400mm-30ft.webp",
       },
       {
         id: "400-40",
@@ -103,7 +119,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "15×6 ft",
         type: "Double Side",
         boardType: "Acrylic Sign Board",
-        image: "/images/unipole/modules/400mm-40ft.webp",
       },
       {
         id: "400-50",
@@ -117,7 +132,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "15×6 ft",
         type: "Double Side",
         boardType: "Acrylic Sign Board",
-        image: "/images/unipole/modules/400mm-50ft.webp",
       },
     ],
   },
@@ -144,7 +158,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "10×8 ft",
         type: "Double Side",
         boardType: "Acrylic Sign Board",
-        image: "/images/unipole/modules/500mm-30ft.webp",
       },
       {
         id: "500-40",
@@ -158,7 +171,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "15×8 ft",
         type: "Double Side",
         boardType: "Acrylic Sign Board",
-        image: "/images/unipole/modules/500mm-40ft.webp",
       },
     ],
   },
@@ -185,7 +197,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "30×30 ft",
         type: "Double Side",
         boardType: "Flex Board",
-        image: "/images/unipole/modules/600mm-40ft.webp",
       },
       {
         id: "600-50",
@@ -199,7 +210,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "30×25 ft",
         type: "Double Side",
         boardType: "Flex Board",
-        image: "/images/unipole/modules/600mm-50ft.webp",
       },
     ],
   },
@@ -226,7 +236,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "40×25 ft",
         type: "Double Side",
         boardType: "Flex Board",
-        image: "/images/unipole/modules/800mm-40ft.webp",
       },
       {
         id: "800-50",
@@ -240,7 +249,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "40×30 ft",
         type: "Double Side",
         boardType: "Flex Board",
-        image: "/images/unipole/modules/800mm-50ft.webp",
       },
     ],
   },
@@ -267,7 +275,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "50×25 ft",
         type: "Double Side",
         boardType: "Flex Board",
-        image: "/images/unipole/modules/900mm-40ft.webp",
       },
       {
         id: "900-50",
@@ -281,7 +288,6 @@ const unipoleModules: UnipoleModule[] = [
         displaySize: "50×30 ft",
         type: "Double Side",
         boardType: "Flex Board",
-        image: "/images/unipole/modules/900mm-50ft.webp",
       },
     ],
   },
@@ -292,29 +298,30 @@ function SafeImage({
   alt,
   sizes,
   className,
+  priority = false,
 }: {
   src: string;
   alt: string;
   sizes: string;
   className: string;
+  priority?: boolean;
 }) {
-  const [imageSource, setImageSource] = useState(src);
+  const [failedSource, setFailedSource] =
+    useState<string | null>(null);
 
-  useEffect(() => {
-    setImageSource(src);
-  }, [src]);
+  const resolvedSource =
+    failedSource === src ? FALLBACK_IMAGE : src;
 
   return (
     <Image
-      src={imageSource}
+      src={resolvedSource}
       alt={alt}
       fill
       sizes={sizes}
       className={className}
+      priority={priority}
       onError={() => {
-        if (imageSource !== FALLBACK_IMAGE) {
-          setImageSource(FALLBACK_IMAGE);
-        }
+        setFailedSource(src);
       }}
     />
   );
@@ -343,84 +350,77 @@ function ModuleCard({
   onOpen: (module: UnipoleModule) => void;
 }) {
   return (
-    <article className="group flex min-w-0 flex-col overflow-hidden rounded-[10px] bg-[#fefefe]">
-      <div className="relative aspect-[419/234] w-full overflow-hidden bg-[rgba(217,217,217,0.5)]">
-        <SafeImage
-          src={module.image}
-          alt={module.imageAlt}
-          sizes="(min-width: 1536px) 419px, (min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-        />
-      </div>
-
-      <div className="flex min-h-[282px] flex-1 flex-col px-[23px] pb-[21px] pt-[23px]">
-        <h3 className="text-[18px] font-medium leading-normal text-black sm:text-[19px] 2xl:text-[20px]">
-          {module.title}
-        </h3>
-
-        <ul className="mt-[18px]">
-          <CardSpecification label="Height Range" value={module.heightRange} />
-          <CardSpecification label="Display Size" value={module.displayRange} />
-          <CardSpecification label="Board Type" value={module.sideType} />
-        </ul>
-
-        <button
-          type="button"
-          onClick={() => onOpen(module)}
-          className="mt-auto flex min-h-14 w-full items-center justify-between gap-5 pt-4 text-left text-[17px] font-medium text-black outline-none transition-colors hover:text-adinn-red focus-visible:text-adinn-red focus-visible:ring-2 focus-visible:ring-adinn-red/30"
-        >
-          <span>View Details</span>
-          <ArrowRight
-            size={24}
-            strokeWidth={1.5}
-            className="shrink-0 transition-transform duration-300 group-hover:translate-x-1"
-            aria-hidden="true"
+    <article className="h-full min-w-0">
+      <button
+        type="button"
+        onClick={() => onOpen(module)}
+        className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[10px] bg-[#fefefe] text-left outline-none transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(15,23,42,0.09)] focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4"
+        aria-label={`View ${module.title} details`}
+      >
+        <div className="relative aspect-[419/234] w-full overflow-hidden bg-[rgba(217,217,217,0.5)]">
+          <SafeImage
+            src={module.image}
+            alt={module.imageAlt}
+            sizes="(min-width: 1536px) 419px, (min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-[1.025]"
           />
-        </button>
-      </div>
+        </div>
+
+        <div className="flex min-h-[282px] flex-1 flex-col px-[23px] pb-[21px] pt-[23px]">
+          <h3 className="text-[18px] font-medium leading-normal text-black sm:text-[19px] 2xl:text-[20px]">
+            {module.title}
+          </h3>
+
+          <ul className="mt-[18px]">
+            <CardSpecification
+              label="Height Range"
+              value={module.heightRange}
+            />
+
+            <CardSpecification
+              label="Display Size"
+              value={module.displayRange}
+            />
+
+            <CardSpecification
+              label="Board Type"
+              value={module.sideType}
+            />
+          </ul>
+
+          <span className="mt-auto flex min-h-14 w-full items-center justify-between gap-5 pt-4 text-[17px] font-medium text-black transition-colors group-hover:text-adinn-red">
+            <span>View Details</span>
+
+            <ArrowRight
+              size={24}
+              strokeWidth={1.5}
+              className="shrink-0 transition-transform duration-300 group-hover:translate-x-1"
+              aria-hidden="true"
+            />
+          </span>
+        </div>
+      </button>
     </article>
   );
 }
 
-function ProposalBanner({
-  onRequestProposal,
+function DetailRow({
+  label,
+  value,
 }: {
-  onRequestProposal: () => void;
+  label: string;
+  value: string;
 }) {
   return (
-    <article className="relative min-h-[430px] overflow-hidden rounded-[10px] bg-white sm:col-span-2 xl:col-span-2 2xl:col-span-3 2xl:min-h-[516px]">
-      <div className="grid min-h-[430px] items-stretch gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(340px,484px)] lg:gap-8 2xl:min-h-[516px]">
-        <div className="flex flex-col justify-center px-5 py-10 sm:px-8 lg:px-4 2xl:px-5">
-          <h3 className="max-w-[760px] text-[clamp(2.5rem,4vw,4.375rem)] font-medium leading-[1.04] tracking-[-0.045em] text-black">
-            UNIPOLE Advertising
-          </h3>
+    <div className="grid gap-2 border-b border-neutral-200 py-4 sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-6">
+      <dt className="text-[12px] font-medium uppercase tracking-[0.09em] text-neutral-500">
+        {label}
+      </dt>
 
-          <p className="mt-4 max-w-[724px] text-[15px] leading-7 text-black sm:text-[17px] 2xl:text-[20px]">
-            Our engineering team will help you select the appropriate pole
-            diameter, height, foundation and display size for your required
-            location.
-          </p>
-
-          <button
-            type="button"
-            onClick={onRequestProposal}
-            className="mt-7 inline-flex min-h-[52px] w-fit items-center justify-center bg-black px-5 text-[15px] font-normal text-white transition-colors hover:bg-adinn-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-adinn-red focus-visible:ring-offset-4 sm:text-[17px] 2xl:text-[20px]"
-          >
-            Request a Proposal
-          </button>
-        </div>
-
-        <div className="relative min-h-[300px] overflow-hidden rounded-[10px] bg-[#f5f5f5] lg:min-h-0">
-          <SafeImage
-            src="/images/unipole/modules/proposal-unipole.webp"
-            alt="UNIPOLE structure"
-            sizes="(min-width: 1536px) 484px, (min-width: 1024px) 38vw, 100vw"
-            className="object-cover object-center opacity-90"
-          />
-          <div aria-hidden="true" className="absolute inset-0 bg-white/15" />
-        </div>
-      </div>
-    </article>
+      <dd className="text-[15px] font-medium leading-6 text-black sm:text-[16px]">
+        {value}
+      </dd>
+    </div>
   );
 }
 
@@ -428,49 +428,109 @@ function ModuleDetailsModal({
   module,
   onClose,
 }: {
-  module: UnipoleModule | null;
+  module: UnipoleModule;
   onClose: () => void;
 }) {
-  const [activeVariationIndex, setActiveVariationIndex] = useState(0);
+  const [activeVariationIndex, setActiveVariationIndex] =
+    useState(0);
+
+  const variation =
+    module.variations[activeVariationIndex] ??
+    module.variations[0];
+
+  const popupImage = variation.image ?? module.image;
+
+  const showPrevious = useCallback(() => {
+    setActiveVariationIndex((current) => {
+      return (
+        (current - 1 + module.variations.length) %
+        module.variations.length
+      );
+    });
+  }, [module.variations.length]);
+
+  const showNext = useCallback(() => {
+    setActiveVariationIndex((current) => {
+      return (current + 1) % module.variations.length;
+    });
+  }, [module.variations.length]);
 
   useEffect(() => {
-    setActiveVariationIndex(0);
-  }, [module]);
+    const scrollY = window.scrollY;
 
-  useEffect(() => {
-    if (!module) return;
+    const previousBodyStyles = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+      paddingRight: document.body.style.paddingRight,
+    };
 
-    const previousOverflow = document.body.style.overflow;
+    const previousHtmlOverflow =
+      document.documentElement.style.overflow;
+
+    const scrollbarWidth =
+      window.innerWidth -
+      document.documentElement.clientWidth;
+
+    document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight =
+        `${scrollbarWidth}px`;
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+      }
+
+      if (event.key === "ArrowLeft") {
+        showPrevious();
+      }
+
+      if (event.key === "ArrowRight") {
+        showNext();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
+      document.documentElement.style.overflow =
+        previousHtmlOverflow;
+
+      document.body.style.overflow =
+        previousBodyStyles.overflow;
+      document.body.style.position =
+        previousBodyStyles.position;
+      document.body.style.top =
+        previousBodyStyles.top;
+      document.body.style.left =
+        previousBodyStyles.left;
+      document.body.style.right =
+        previousBodyStyles.right;
+      document.body.style.width =
+        previousBodyStyles.width;
+      document.body.style.paddingRight =
+        previousBodyStyles.paddingRight;
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+
+      window.scrollTo(0, scrollY);
     };
-  }, [module, onClose]);
-
-  if (!module) return null;
-
-  const variation = module.variations[activeVariationIndex];
-
-  const showPrevious = () => {
-    setActiveVariationIndex(
-      (current) =>
-        (current - 1 + module.variations.length) % module.variations.length,
-    );
-  };
-
-  const showNext = () => {
-    setActiveVariationIndex(
-      (current) => (current + 1) % module.variations.length,
-    );
-  };
+  }, [onClose, showNext, showPrevious]);
 
   const details = [
     ["Pole Diameter", variation.poleDiameter],
@@ -482,135 +542,172 @@ function ModuleDetailsModal({
     ["Display Size", variation.displaySize],
     ["Type", variation.type],
     ["Board Type", variation.boardType],
-  ];
+  ] as const;
 
   return (
     <div
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
       }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm sm:p-6"
+      onWheel={(event) => {
+        const target = event.target as HTMLElement;
+
+        if (!target.closest("[data-modal-scroll]")) {
+          event.preventDefault();
+        }
+      }}
+      onTouchMove={(event) => {
+        const target = event.target as HTMLElement;
+
+        if (!target.closest("[data-modal-scroll]")) {
+          event.preventDefault();
+        }
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/70 p-3 backdrop-blur-[5px] sm:p-5"
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="unipole-module-modal-title"
-        className="relative max-h-[94vh] w-full max-w-[1280px] overflow-y-auto rounded-[18px] bg-white"
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close module details"
-          className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
-        >
-          <X size={21} strokeWidth={1.6} />
-        </button>
-
-        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="bg-[#f5f5f3] p-5 sm:p-8 lg:p-10">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[12px] bg-neutral-200">
-              <SafeImage
-                src={variation.image}
-                alt={variation.label}
-                sizes="(min-width: 1024px) 45vw, 100vw"
-                className="object-cover object-center"
+      <div className="relative w-full max-w-[1280px]">
+        {module.variations.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={showPrevious}
+              aria-label="Previous variation"
+              className="absolute left-2 top-1/2 z-50 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-neutral-200 bg-white text-black shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:scale-105 hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white lg:-left-6"
+            >
+              <ChevronLeft
+                size={23}
+                strokeWidth={1.6}
               />
+            </button>
 
-              {module.variations.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={showPrevious}
-                    aria-label="Previous variation"
-                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-neutral-100"
-                  >
-                    <ChevronLeft size={23} strokeWidth={1.5} />
-                  </button>
+            <button
+              type="button"
+              onClick={showNext}
+              aria-label="Next variation"
+              className="absolute right-2 top-1/2 z-50 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-neutral-200 bg-white text-black shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:scale-105 hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white lg:-right-6"
+            >
+              <ChevronRight
+                size={23}
+                strokeWidth={1.6}
+              />
+            </button>
+          </>
+        )}
 
-                  <button
-                    type="button"
-                    onClick={showNext}
-                    aria-label="Next variation"
-                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-neutral-100"
-                  >
-                    <ChevronRight size={23} strokeWidth={1.5} />
-                  </button>
-                </>
-              )}
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unipole-module-modal-title"
+          className="relative grid max-h-[calc(100dvh-24px)] grid-rows-[minmax(360px,46dvh)_minmax(0,1fr)] overflow-hidden rounded-[28px] bg-white shadow-[0_40px_120px_rgba(0,0,0,0.34)] sm:max-h-[calc(100dvh-40px)] lg:grid-cols-[44%_56%] lg:grid-rows-1"
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close module details"
+            className="absolute right-4 top-4 z-50 grid h-10 w-10 place-items-center rounded-full bg-white/95 text-black shadow-md transition hover:rotate-90 hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 sm:right-5 sm:top-5"
+          >
+            <X
+              size={21}
+              strokeWidth={1.7}
+            />
+          </button>
+
+          {/* Left side remains fixed and never scrolls. */}
+          <div className="flex min-h-0 flex-col overflow-hidden bg-[#f5f5f3] p-5 sm:p-7 lg:p-10">
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-[18px] bg-neutral-200">
+              <SafeImage
+                src={popupImage}
+                alt={`${variation.label} UNIPOLE module`}
+                sizes="(min-width: 1024px) 44vw, 100vw"
+                className="object-contain object-center p-3 sm:p-5"
+                priority
+              />
             </div>
 
-            <div className="mt-5">
-              <p className="text-xs font-medium uppercase tracking-[0.15em] text-neutral-500">
+            <div className="mt-5 shrink-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.21em] text-neutral-500">
                 Select a variation
               </p>
 
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-                {module.variations.map((item, index) => {
-                  const isActive = index === activeVariationIndex;
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                {module.variations.map(
+                  (item, index) => {
+                    const isActive =
+                      index === activeVariationIndex;
 
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setActiveVariationIndex(index)}
-                      aria-pressed={isActive}
-                      className={[
-                        "min-h-[82px] rounded-[10px] px-4 py-3 text-left transition-colors",
-                        isActive
-                          ? "bg-black text-white"
-                          : "bg-white text-black hover:bg-neutral-100",
-                      ].join(" ")}
-                    >
-                      <span className="block text-sm font-semibold">
-                        {item.label}
-                      </span>
-                      <span
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() =>
+                          setActiveVariationIndex(index)
+                        }
+                        aria-pressed={isActive}
                         className={[
-                          "mt-1 block text-xs",
-                          isActive ? "text-white/70" : "text-neutral-500",
+                          "min-h-[76px] rounded-[12px] px-4 py-3 text-left transition-colors",
+                          isActive
+                            ? "bg-black text-white shadow-[0_8px_20px_rgba(0,0,0,0.12)]"
+                            : "bg-[#e9e9e6] text-black hover:bg-[#ddddda]",
                         ].join(" ")}
                       >
-                        {item.displaySize}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className="block text-[13px] font-semibold">
+                          {item.label}
+                        </span>
+
+                        <span
+                          className={[
+                            "mt-1 block text-[12px]",
+                            isActive
+                              ? "text-white/70"
+                              : "text-neutral-500",
+                          ].join(" ")}
+                        >
+                          {item.displaySize}
+                        </span>
+                      </button>
+                    );
+                  },
+                )}
               </div>
             </div>
           </div>
 
-          <div className="p-6 sm:p-9 lg:p-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-adinn-red">
+          {/*
+           * Only this right-side detail panel is scrollable.
+           * Scrolling over the image/left side does not move the page.
+           */}
+          <div
+            data-modal-scroll
+            className="min-h-0 overflow-y-auto overscroll-contain px-6 pb-10 pt-9 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-10 sm:pb-12 sm:pt-12 lg:px-12 lg:pb-14"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-adinn-red">
               UNIPOLE specification
             </p>
 
             <h2
               id="unipole-module-modal-title"
-              className="mt-3 pr-12 text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-[1] tracking-[-0.045em] text-black"
+              className="mt-3 pr-12 text-[clamp(2.25rem,4vw,4rem)] font-semibold leading-[0.96] tracking-[-0.05em] text-black"
             >
               {variation.label}
             </h2>
 
-            <p className="mt-4 max-w-[620px] text-sm leading-7 text-neutral-600 sm:text-base">
-              Review the structural specifications for this variation. Final
-              engineering dimensions may be confirmed after the site inspection
-              and soil-condition assessment.
+            <p className="mt-6 max-w-[720px] text-[15px] leading-7 text-neutral-600 sm:text-[17px]">
+              Review the structural specifications for this
+              variation. Final engineering dimensions may be
+              confirmed after the site inspection and
+              soil-condition assessment.
             </p>
 
-            <dl className="mt-8 divide-y divide-neutral-200 border-y border-neutral-200">
+            <dl className="mt-8 border-t border-neutral-200">
               {details.map(([label, value]) => (
-                <div
+                <DetailRow
                   key={label}
-                  className="grid gap-1 py-4 sm:grid-cols-[170px_1fr] sm:gap-6"
-                >
-                  <dt className="text-xs font-medium uppercase tracking-[0.08em] text-neutral-500">
-                    {label}
-                  </dt>
-                  <dd className="text-sm font-medium leading-6 text-black sm:text-base">
-                    {value}
-                  </dd>
-                </div>
+                  label={label}
+                  value={value}
+                />
               ))}
             </dl>
 
@@ -618,17 +715,24 @@ function ModuleDetailsModal({
               type="button"
               onClick={() => {
                 onClose();
+
                 window.setTimeout(() => {
-                  document.querySelector("#enquiry")?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  });
+                  document
+                    .querySelector("#enquiry")
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
                 }, 120);
               }}
-              className="mt-8 inline-flex min-h-12 items-center justify-center gap-5 bg-black px-6 text-sm font-medium text-white transition-colors hover:bg-adinn-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-adinn-red focus-visible:ring-offset-4"
+              className="mt-8 inline-flex min-h-12 items-center justify-center gap-8 rounded-[10px] bg-black px-6 text-[14px] font-medium text-white transition-colors hover:bg-adinn-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-adinn-red focus-visible:ring-offset-4"
             >
               Request This Module
-              <ArrowRight size={18} strokeWidth={1.6} />
+
+              <ArrowRight
+                size={18}
+                strokeWidth={1.6}
+              />
             </button>
           </div>
         </div>
@@ -639,37 +743,43 @@ function ModuleDetailsModal({
 
 export function InventorySection({
   onViewDetails,
-  onRequestProposal,
 }: InventorySectionProps) {
   const [activeFilter, setActiveFilter] =
     useState<ModuleFilter>("all");
+
   const [selectedModule, setSelectedModule] =
     useState<UnipoleModule | null>(null);
 
   const visibleModules = useMemo(() => {
-    if (activeFilter === "all") return unipoleModules;
-    return unipoleModules.filter((module) => module.key === activeFilter);
+    if (activeFilter === "all") {
+      return unipoleModules;
+    }
+
+    return unipoleModules.filter(
+      (module) => module.key === activeFilter,
+    );
   }, [activeFilter]);
 
-  const openModuleDetails = (module: UnipoleModule) => {
-    if (onViewDetails) {
-      onViewDetails(module);
-      return;
-    }
-    setSelectedModule(module);
-  };
+  const openModuleDetails = useCallback(
+    (module: UnipoleModule) => {
+      if (onViewDetails) {
+        onViewDetails(module);
+        return;
+      }
 
-  const handleRequestProposal = () => {
-    if (onRequestProposal) {
-      onRequestProposal();
-      return;
-    }
+      setSelectedModule(module);
+    },
+    [onViewDetails],
+  );
 
-    document.querySelector("#enquiry")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
+  const closeModuleDetails = useCallback(() => {
+    setSelectedModule(null);
+  }, []);
+
+  const ctaGridClass =
+    visibleModules.length === 1
+      ? "col-span-full mt-1"
+      : "col-span-full 2xl:col-span-3";
 
   return (
     <>
@@ -698,13 +808,16 @@ export function InventorySection({
             className="mx-auto mt-10 flex max-w-full items-center gap-3 overflow-x-auto pb-2 sm:justify-center sm:gap-4 sm:overflow-visible lg:mt-[54px] lg:gap-[28px]"
           >
             {moduleFilters.map((filter) => {
-              const isActive = activeFilter === filter.value;
+              const isActive =
+                activeFilter === filter.value;
 
               return (
                 <button
                   key={filter.value}
                   type="button"
-                  onClick={() => setActiveFilter(filter.value)}
+                  onClick={() =>
+                    setActiveFilter(filter.value)
+                  }
                   aria-pressed={isActive}
                   className={[
                     "h-[52px] shrink-0 px-5 text-sm font-normal transition-colors",
@@ -721,7 +834,10 @@ export function InventorySection({
             })}
           </div>
 
-          <p aria-live="polite" className="sr-only">
+          <p
+            aria-live="polite"
+            className="sr-only"
+          >
             Showing {visibleModules.length} UNIPOLE modules
           </p>
 
@@ -734,15 +850,22 @@ export function InventorySection({
               />
             ))}
 
-            <ProposalBanner onRequestProposal={handleRequestProposal} />
+            <div
+              className={`${ctaGridClass} min-h-[430px] [&>*]:h-full`}
+            >
+              <ProposalBanner3D />
+            </div>
           </div>
         </div>
       </section>
 
-      <ModuleDetailsModal
-        module={selectedModule}
-        onClose={() => setSelectedModule(null)}
-      />
+      {selectedModule && (
+        <ModuleDetailsModal
+          key={selectedModule.id}
+          module={selectedModule}
+          onClose={closeModuleDetails}
+        />
+      )}
     </>
   );
-} 
+}
