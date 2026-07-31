@@ -1,1141 +1,385 @@
-# ADINN UNIPOLE Website — Project Context
+ADINN UNIPOLE Website — Current Claude Context
 
-## Project root
+Active project root
 
-```text
-D:\unipole_new\adinn-unipole-premium
-```
+Always work only inside:
 
-Always work inside this folder.
-
-Do not modify the older project located at:
-
-```text
 D:\Unippole_Single_page_web
-```
 
-Before editing, confirm the terminal is inside the correct project:
+Before editing, confirm the terminal location:
 
-```powershell
-cd "D:\unipole_new\adinn-unipole-premium"
+cd "D:\Unippole_Single_page_web"
 Get-Location
-```
 
----
+The output must be:
 
-## Project objective
+D:\Unippole_Single_page_web
 
-Build a professional, premium and responsive ADINN UNIPOLE website for users to:
+Do not make active website changes inside:
 
-- Understand UNIPOLE advertising
-- Understand its business value
-- Browse available UNIPOLE locations
-- Filter available inventory
-- View individual site details
-- Add suitable sites to a campaign plan
-- Request availability or a campaign proposal
+D:\unipole_new\adinn-unipole-premium-current-backup
 
-The website must feel intentionally designed, not like a generic template.
+That folder is only a backup/reference source. It may be read only when a specific reusable file is requested.
 
-Use:
+Do not rename, move, replace or restructure either project folder.
 
-- Strong visual hierarchy
-- Realistic UNIPOLE imagery
-- Restrained animation
-- Generous spacing
-- Clear booking and shortlisting actions
-- Careful responsive behaviour
-- Premium editorial layouts
-- Clean mobile interactions
+Current project priority
 
-The current system is a campaign-planning and proposal-request experience.
+The current task is a small, protected Hero update.
 
-Do not describe a site as instantly booked unless the system genuinely reserves and confirms that site.
+Update only the existing Hero background to use the Silk animated effect.
 
-Preferred terminology:
+Do not redesign or rebuild the website.
 
-- Add to Campaign Plan
-- View Campaign Plan
-- Request Availability
-- Request Proposal
-- Build Campaign Plan
+Do not change the overall structure, section order, page composition, content, navigation, typography, spacing, buttons, business flow or responsive behaviour.
 
-Avoid using `Book Now` unless direct confirmed booking is implemented.
+Make the smallest complete change required.
 
----
+Important scope clarification
 
-## Core technology
+The separate 3D UNIPOLE assembly/model experience has not been implemented or approved in this active project yet.
 
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- Tailwind CSS 4
-- Poppins
-- Framer Motion
-- Lenis
-- GSAP
-- ScrollTrigger
-- React Three Fiber
-- Drei
-- Three.js
-- Lucide React
+Therefore, do not create, copy, restore or integrate any of the following as part of the current work:
 
-Do not convert the project to another framework.
+AssemblyScene.tsx
+HeroScene.tsx
+UnipoleModel.tsx
+Scroll-driven Assembly
+3D UNIPOLE model
+Drag-to-rotate model
+Scroll-to-assemble stages
+Foundation / Pole / Frame / Lighting 3D sequence
+Drei model helpers
+GLTF model loading
 
-Do not replace an existing animation library without a clear technical reason.
+Do not add a 3D billboard model to the main Hero.
 
-Do not add new dependencies unless strictly necessary.
+Do not add a separate 3D section.
 
----
+Do not change the homepage order to make space for a 3D section.
 
-## Brand and visual direction
+3D assembly work is a future task and is outside the current scope.
 
-Use:
+The Silk effect is allowed because it is only an animated shader background. It must not be turned into a 3D UNIPOLE scene.
 
-- ADINN red
-- Black
-- White
-- Controlled warm-neutral backgrounds
-- Poppins throughout
-- Clean editorial layouts
-- Large product-focused imagery
-- Smooth, restrained animation
-- Thin dividers where useful
-- Minimal shadows
-- Realistic UNIPOLE imagery
-- Good mobile spacing
-- Readable typography
-- Clear campaign-planning actions
+Current Hero update
 
-Avoid:
+Required result
 
-- Generic SaaS card grids
-- Excessive glassmorphism
-- Harsh glow effects
-- Large decorative gradient blobs
-- Repeated three-card layouts
-- Cartoon icons
-- Fake statistics
-- Fake testimonials
-- Placeholder-looking design
-- Platform branding
-- Website-builder wording
-- Excessive bouncing animations
-- Unnecessary scale animations
-- Unnecessary decorative sections
-- Repetitive galleries
+Preserve the existing Hero exactly as it currently appears, except for replacing the broken image-based background layers with Silk.
 
----
+Keep unchanged:
 
-## Current source structure
+Hero height
 
-```text
-src/
-├── app/
-│   ├── globals.css
-│   ├── layout.tsx
-│   ├── page.tsx
-│   ├── error.tsx
-│   ├── not-found.tsx
-│   ├── icon.svg
-│   ├── apple-icon.png
-│   └── opengraph-image.jpg
-│
-├── components/
-│   ├── ClientApp.tsx
-│   │
-│   ├── home/
-│   │   ├── HomeSections.tsx
-│   │   ├── HeroSection.tsx
-│   │   ├── HeroSection.module.css
-│   │   ├── InventorySection.tsx
-│   │   ├── AssemblyScene.tsx
-│   │   ├── DayNightCompare.tsx
-│   │   ├── EnquirySection.tsx
-│   │   └── FooterSection.tsx
-│   │
-│   ├── layout/
-│   │   └── Header.tsx
-│   │
-│   ├── three/
-│   │   ├── HeroScene.tsx
-│   │   └── UnipoleModel.tsx
-│   │
-│   ├── product/
-│   │   └── ProductModal.tsx
-│   │
-│   ├── campaign/
-│   │   ├── CampaignPlanDrawer.tsx
-│   │   └── AddedToPlanToast.tsx
-│   │
-│   ├── text/
-│   │   └── ScrollFloat.tsx
-│   │
-│   └── ui/
-│       ├── BrandButton.tsx
-│       ├── PlaceholderImage.tsx
-│       └── Silk.tsx
-│
-├── context/
-│   └── CampaignPlanContext.tsx
-│
-├── hooks/
-│   ├── useLenis.ts
-│   ├── useFocusTrap.ts
-│   └── useReducedMotion.ts
-│
-├── config/
-│   └── site.ts
-│
-├── data/
-│   └── unipoles.ts
-│
-├── lib/
-│   ├── campaign-plan.ts
-│   ├── inventory.ts
-│   └── utils.ts
-│
-└── types/
-    └── unipole.ts
-```
+Hero layout
 
-The local project may contain recent files or changes beyond this list.
+Hero text
 
-Always inspect the actual project before editing.
+Heading line breaks
 
-Do not assume that a component, path, import or asset exists solely because it appears in this document.
+Supporting copy
 
----
+Buttons
 
-# Approved homepage composition
+Button actions
 
-## Main composition file
+Text alignment
 
-The primary homepage composition is expected to be controlled by:
+Foreground layout
 
-```text
-src/components/ClientApp.tsx
-```
+Existing reveal animation
 
-However, inspect the actual project before editing because the section composition may have moved to another file.
+Existing scroll behaviour
 
-Possible composition files include:
+Existing responsive behaviour
 
-```text
+Header interaction
+
+Navigation anchors
+
+Mobile layout
+
+Accessibility attributes
+
+Do not redesign the Hero into a split layout.
+
+Do not add cards, statistics, badges, location counts, format counts or extra content.
+
+Do not add React Bits sample branding or sample copy.
+
+Broken Hero assets
+
+The active project currently requests missing Hero assets such as:
+
+/images/hero/evening-sky.jpg
+/images/hero/distant-unipoles.png
+/images/hero/main-unipole.png
+/images/hero/road-foreground.png
+/images/hero/cloud-01.png
+/images/hero/cloud-02.png
+/images/hero/cloud-03.png
+/images/hero/light-trails.png
+
+These references return 404 errors in the active project.
+
+Remove only these missing Hero background-layer references from the active Hero implementation.
+
+Do not delete unrelated images.
+
+Do not change image paths used by other sections.
+
+Do not create empty placeholder files with these names.
+
+Silk component source
+
+A working Silk component is available in the backup project at:
+
+D:\unipole_new\adinn-unipole-premium-current-backup\src\components\ui\Silk.tsx
+
+It may be copied into the active project only when required.
+
+Preferred target location, if compatible with the active project structure:
+
+D:\Unippole_Single_page_web\src\components\ui\Silk.tsx
+
+Before copying:
+
+Inspect the active project structure.
+
+Confirm whether src/components/ui exists.
+
+Confirm the current import alias configuration.
+
+Confirm whether a Silk component already exists.
+
+Do not create duplicate Silk implementations.
+
+Copy only Silk.tsx from the backup project.
+
+Do not copy the backup project’s Hero, Header, CSS, page composition, sections, layouts, contexts or data files.
+
+Silk settings
+
+Use these exact settings unless the user explicitly requests a later visual adjustment:
+
+<Silk
+  speed={5}
+  scale={1}
+  color="#b83f52"
+  noiseIntensity={1.5}
+  rotation={0}
+/>
+
+Do not replace these settings with a public React Bits example.
+
+Do not add sample logos, badges, navigation, headings or buttons from React Bits.
+
+Hero layering
+
+Use this layer order:
+
+Silk animated background
+
+Existing readability overlay or gradient
+
+Existing foreground decorative content that is already working
+
+Existing Hero text and actions
+
+Existing Header
+
+Required CSS behaviour:
+
+Hero wrapper:
+position: relative
+isolation: isolate
+overflow: hidden
+
+Silk wrapper:
+position: absolute
+inset: 0
+z-index: 0
+pointer-events: none
+width: 100%
+height: 100%
+
+Existing overlay:
+z-index: 1
+must remain translucent
+
+Existing Hero foreground content:
+position: relative
+z-index: 2
+
+The Silk wrapper and Canvas must fill the complete Hero.
+
+Do not place an opaque white background or fully opaque gradient above Silk.
+
+Do not allow the Canvas to capture clicks or touch events.
+
+Do not change the Header while fixing Hero layering unless a Hero-only stacking issue makes one tiny z-index adjustment strictly necessary.
+
+Dependency rules
+
+Inspect package.json before installing anything.
+
+The project may already contain Three.js or React Three Fiber.
+
+Use existing packages when available.
+
+Do not install or add dependencies for the future 3D assembly experience.
+
+Do not install:
+
+Drei solely for this task
+
+GLTF loaders solely for this task
+
+Additional 3D model libraries
+
+Shadcn packages
+
+React Bits packages through CLI
+
+Do not run:
+
+npx shadcn add ...
+pnpm dlx shadcn ...
+
+The local Silk component should be used directly.
+
+Current website protection
+
+Before editing, inspect the actual current files in:
+
+D:\Unippole_Single_page_web
+
+Do not assume the file structure from the backup project matches the active project.
+
+Possible Hero locations may include:
+
+src/components/home/HeroSection.tsx
+src/components/home/HeroSection.module.css
+src/components/sections/HeroSection.tsx
 src/components/ClientApp.tsx
 src/app/page.tsx
-src/components/home/HomePage.tsx
-```
+src/app/globals.css
 
-Do not assume the file name without checking.
+Find the active Hero by tracing imports from the rendered page.
 
----
+Modify only:
 
-## Final approved homepage order
+The active Hero component
 
-The active homepage must follow this order:
+Its directly related Hero stylesheet
 
-1. Header
-2. Hero
-3. About Unipole
-4. Why Choose UNIPOLE Advertising
-5. Available Inventory
-6. Day & Night — Visible Through Every Hour
-7. Scroll-driven Assembly — How a UNIPOLE Takes Shape
-8. The Installation Journey
-9. Industries Served
-10. How Outdoor Presence Supports Growth
-11. FAQ
-12. Enquiry
-13. Footer
+One local Silk component file, if needed
 
-Supporting overlays and drawers must remain outside or after the visible page composition:
+Do not create a second Hero.
 
-14. CampaignPlanDrawer
-15. ProductModal
-16. AddedToPlanToast
+Do not import a Hero from the backup project.
 
-Expected composition structure:
+Do not replace the active page composition.
 
-```tsx
-<Header />
+Sections that must remain unchanged
 
-<main>
-  <HeroSection />
-  <WhatIsUnipoleSection />
-  <WhyChooseSection />
-  <InventorySection />
-  <DayNightCompare />
-  <AssemblyScene />
-  <GroundToSkySection />
-  <IndustriesSection />
-  <BusinessGrowthSection />
-  <FaqSection />
-  <EnquirySection />
-</main>
+Preserve every current section exactly in its current order.
 
-<FooterSection />
+Do not reorder, remove, duplicate or redesign any section while implementing Silk.
 
-<CampaignPlanDrawer />
-<ProductModal />
-<AddedToPlanToast />
-```
+Do not modify:
 
-The actual component names may differ slightly.
+Header
 
-Identify each section using both its component name and its visible heading.
+About / What is a UNIPOLE
 
----
-
-## Section identification
-
-### Hero
-
-Visible content:
-
-```text
-NEW
-Premium outdoor visibility
-
-One pole. Maximum brand visibility.
-```
-
-Actions:
-
-```text
-Explore Sites
-Plan Campaign
-```
-
-### About
-
-Visible heading:
-
-```text
-About Unipole
-```
-
-### Why Choose
-
-Visible headings:
-
-```text
 Why Choose
-UNIPOLE Advertising
-```
 
-### Inventory
+Inventory
 
-Visible headings:
+Day and Night
 
-```text
-Available Inventory
-Browse UNIPOLE locations.
-```
+Installation journey
 
-### Day and Night
+Industries
 
-Visible headings:
+Business growth
 
-```text
-Day & Night
-Visible Through Every Hour
-```
-
-### Assembly
-
-Visible headings:
-
-```text
-Scroll-driven assembly
-How a UNIPOLE takes shape.
-```
-
-Stages:
-
-```text
-01 Foundation
-02 Pole
-03 Support
-04 Frame
-05 Display
-06 Lighting
-07 Campaign Surface
-08 Complete
-```
-
-### Installation
-
-Visible headings:
-
-```text
-From Ground to Sky
-The installation journey.
-```
-
-### Industries
-
-Visible headings:
-
-```text
-Industries Served
-Trusted across every category that needs visibility.
-```
-
-### Business Growth
-
-Visible headings:
-
-```text
-Business Growth Journey
-How outdoor presence supports growth.
-```
-
-### FAQ
-
-Visible headings:
-
-```text
 FAQ
-Answers to common questions.
-```
 
-### Enquiry
+Enquiry
 
-Visible heading:
+Footer
 
-```text
-Request a campaign proposal.
-```
+Product details modal
 
----
+Campaign plan
 
-## Homepage ordering rules
+Toast notifications
 
-- About Unipole must appear directly after Hero.
-- Why Choose UNIPOLE Advertising must appear directly after About Unipole.
-- Available Inventory must appear directly after Why Choose.
-- Day & Night must appear directly after Available Inventory.
-- Scroll-driven Assembly must appear directly after Day & Night.
-- The Installation Journey must appear after Scroll-driven Assembly.
-- Industries Served must appear before Business Growth.
-- Business Growth must appear before FAQ.
-- FAQ must appear before Enquiry.
-- Enquiry must appear before Footer.
-- Footer must remain the final visible website section.
-- Every active section must render exactly once.
-- Do not duplicate sections while reordering them.
-- When moving a section, remove it from its previous position.
-- Reordering sections must not change their internal functionality.
-- Reordering sections must not change IDs or navigation anchors.
+Site data
 
----
+Filters
 
-# Sections not included in the active homepage
+Forms
 
-## Campaign Gallery
+The actual active website is the source of truth for section order.
 
-The Campaign Gallery section is no longer required.
+Do not apply an order from an older prompt, backup project or outdated document.
 
-Removed visible content includes:
+About / What is a UNIPOLE protection
 
-```text
-Campaign Gallery
-Recent brand presence.
-```
+The “What is a UNIPOLE” section is not part of the current Hero Silk task.
 
-Removed filters include:
+Do not change its content, image, layout, icons, spacing or animation while implementing Silk.
 
-```text
-All
-Real Estate
-Retail
-Healthcare
-Education
-Automobile
-FMCG
-Jewellery
-Corporate
-```
+A later task may update that section separately.
 
-Rules:
+Header protection
 
-- Do not render `GallerySection` on the homepage.
-- Do not restore Campaign Gallery unless explicitly requested.
-- Remove `<GallerySection />` from the homepage composition.
-- If `GallerySection` is not used anywhere else, its component and gallery-only data may be removed.
-- If it is used elsewhere, keep the component and remove only its homepage rendering.
-- Remove unused gallery-only imports, state and constants when safe.
-- Do not remove shared components that are used elsewhere.
-- Do not remove `PlaceholderImage` solely because GallerySection was removed.
-- Do not modify unrelated gallery-independent functionality.
+Preserve the current Header design and behaviour.
 
----
+Do not add or remove:
 
-## Key Locations and How It Works
+Backgrounds
 
-`KeyLocationsSection` and `HowItWorksSection` are not part of the currently approved homepage order.
+Borders
 
-Rules:
+Rings
 
-- Do not render them on the active homepage unless explicitly requested.
-- Do not automatically delete their component files.
-- Preserve them if they are used on another page.
-- Do not restore them simply because they appear in older documentation or older code.
-- Remove unused homepage imports when they cause lint errors.
+Shadows
 
----
+Navigation links
 
-# Homepage imports
+Mobile menu behaviour
 
-## Hero source
+Scroll state behaviour
 
-Use one active HeroSection implementation only.
+Only adjust a Header z-index when strictly required to keep the unchanged Header above the Hero, and report that change clearly.
 
-Preferred import:
+Asset rules
 
-```tsx
-import { HeroSection } from "@/components/home/HeroSection";
-```
+Before referencing any asset, confirm the physical file exists.
 
-Do not import another `HeroSection` from `HomeSections.tsx` at the same time.
+Use PowerShell when needed:
 
-If `HomeSections.tsx` still contains an older duplicate HeroSection export:
-
-1. Search the project for all HeroSection imports.
-2. Confirm which implementation is active.
-3. Preserve the approved active implementation.
-4. Remove the duplicate only after confirming it is unused.
-5. Do not accidentally remove the approved hero.
-
----
-
-## HomeSections imports
-
-Import only the sections that are actively used:
-
-```tsx
-import {
-  WhatIsUnipoleSection,
-  WhyChooseSection,
-  GroundToSkySection,
-  IndustriesSection,
-  BusinessGrowthSection,
-  FaqSection,
-} from "@/components/home/HomeSections";
-```
-
-Dedicated components should be imported from their own files when applicable:
-
-```tsx
-import { HeroSection } from "@/components/home/HeroSection";
-import { InventorySection } from "@/components/home/InventorySection";
-import { AssemblyScene } from "@/components/home/AssemblyScene";
-import { DayNightCompare } from "@/components/home/DayNightCompare";
-import { EnquirySection } from "@/components/home/EnquirySection";
-import { FooterSection } from "@/components/home/FooterSection";
-```
-
-Inspect actual exports before changing imports.
-
-Do not import `GallerySection` into the active homepage composition.
-
----
-
-# Current approved Hero
-
-## Hero implementation
-
-The approved hero uses:
-
-- Silk animated background
-- ScrollFloat heading animation
-- GSAP ScrollTrigger parallax
-- Framer Motion reveal animation
-- Reduced-motion support
-- Explore Sites action
-- Plan Campaign action
-
-Approved badge:
-
-```text
-NEW
-Premium outdoor visibility
-```
-
-Approved heading:
-
-```text
-One pole. Maximum brand visibility.
-```
-
-Approved actions:
-
-```text
-Explore Sites
-Plan Campaign
-```
-
----
-
-## Hero behaviour
-
-Preserve:
-
-- Silk animated background
-- Current ADINN red colour treatment
-- ScrollFloat heading animation
-- Background parallax
-- Content parallax
-- Framer Motion content reveal
-- Reduced-motion handling
-- Explore Sites scrolling to `#inventory`
-- Plan Campaign opening the campaign-plan interaction
-- Responsive centre alignment
-- No horizontal overflow
-
-Do not:
-
-- Replace the Silk hero with an older photographic hero
-- Restore the old “Visibility That Stays” heading
-- Add a split-column layout
-- Add a card-like outer hero container
-- Add a rounded hero frame
-- Add fake statistics
-- Add cities, formats or sites statistics
-- Add an “Interactive structure” badge
-- Add WebGL to the main hero
-- Add large artificial light beams
-- Add excessive scale or bounce effects
-- Change unrelated sections while adjusting the hero
-
-The Three.js structure belongs to the separate Scroll-driven Assembly section.
-
----
-
-## ScrollFloat component
-
-Canonical component path:
-
-```text
-src/components/text/ScrollFloat.tsx
-```
-
-Canonical import:
-
-```tsx
-import ScrollFloat from "@/components/text/ScrollFloat";
-```
-
-Do not maintain two different ScrollFloat implementations.
-
-If this duplicate exists:
-
-```text
-src/components/ScrollFloat.tsx
-```
-
-Search all imports before removing it.
-
-Only delete the duplicate after confirming that no component still depends on it.
-
-The Hero may use `playOnMount` because it is visible immediately when the page loads.
-
-Preserve the current heading semantics, accessibility ID and reduced-motion behaviour.
-
----
-
-# Header requirement
-
-File:
-
-```text
-src/components/layout/Header.tsx
-```
-
-Before scrolling:
-
-- Transparent
-- No full-width grey background
-- No border
-- No ring
-- No outer rounded frame
-- No horizontal stroke
-- White navigation text over the Hero
-
-After scrolling:
-
-- Subtle white or warm-white background
-- Light blur is acceptable
-- Dark navigation text
-- Restrained shadow
-- Smooth transition
-
-Do not add unnecessary `border-b` styling to the header wrapper.
-
-Header navigation must continue working with Lenis and existing section anchors.
-
-The Inventory navigation must continue scrolling to:
-
-```text
-#inventory
-```
-
----
-
-# About Unipole
-
-The About section must:
-
-- Explain what a UNIPOLE is
-- Preserve the current interactive feature list
-- Preserve active-item behaviour
-- Preserve reduced-motion support
-- Preserve its image and responsive layout
-- Remain directly below the Hero
-- Remain directly above Why Choose
-
-Do not redesign it while changing homepage order.
-
----
-
-# Why Choose UNIPOLE Advertising
-
-The Why Choose section must remain directly before Available Inventory.
-
-It must preserve the six benefit items:
-
-```text
-01 High Visibility
-02 Strategic Placement
-03 Strong Brand Recall
-04 Day and Night Presence
-05 Large Creative Impact
-06 Flexible Campaign Planning
-```
-
-## Carousel design
-
-The approved carousel direction is:
-
-- Large rounded visual cards
-- Image above
-- Heading and description below
-- Clean white background
-- Two complete cards visible on desktop where space permits
-- Partial neighbouring cards visible on both sides
-- One centred card on tablet and mobile
-- Smooth previous and next navigation
-- Pagination dots
-- Equal visual spacing
-- Responsive typography
-- No horizontal page overflow
-
-## Card sizing requirement
-
-Card width and image height must be independently adjustable.
-
-Use one clearly named configuration object, for example:
-
-```tsx
-const WHY_CARD_DIMENSIONS = {
-  extraLargeDesktop: {
-    cardWidth: 520,
-    imageHeight: 360,
-    gap: 24,
-  },
-  largeDesktop: {
-    cardWidth: 460,
-    imageHeight: 320,
-    gap: 24,
-  },
-  desktop: {
-    cardWidth: 390,
-    imageHeight: 285,
-    gap: 20,
-  },
-};
-```
-
-Rules:
-
-- `cardWidth` controls only card width.
-- `imageHeight` controls only image height.
-- `gap` controls spacing between cards.
-- Do not use a fixed aspect-ratio class when independent height control is required.
-- Do not keep multiple conflicting size configurations.
-- Do not keep obsolete values such as both `WHY_CARD_SCALE` and `WHY_CARD_SIZE`.
-- Keep card title sizes responsive.
-- Keep descriptions readable without excessive empty space.
-- Keep all cards visually balanced.
-
----
-
-# Available Inventory
-
-## Position
-
-Available Inventory must appear directly after Why Choose UNIPOLE Advertising.
-
-It must remain within the first five main content sections because browsing and shortlisting sites is a primary website objective.
-
-Approved journey:
-
-```text
-Understand the product
-→ Understand the benefits
-→ Browse available locations
-→ Add locations to campaign plan
-→ Request proposal
-```
-
----
-
-## Inventory functionality to preserve
-
-Preserve:
-
-- Available Inventory heading
-- Browse UNIPOLE locations heading
-- Result count
-- Search field
-- City filter
-- Area filter
-- Size filter
-- Illumination filter
-- Availability filter
-- Reset filters
-- Inventory cards
-- Site images
-- Media code
-- City
-- Area
-- Dimensions
-- Illumination
-- Facing direction
-- Availability status
-- Pricing status
-- Details action
-- Add action
-- View Campaign Plan action
-- Product modal behaviour
-- Campaign-plan behaviour
-- URL behaviour
-- Local-storage persistence
-- Responsive grid
-- Empty state
-- Section ID
-
-Required anchor:
-
-```text
-#inventory
-```
-
-Do not change inventory data while moving the section.
-
-Do not duplicate InventorySection.
-
-Do not describe the Add action as confirmed booking.
-
----
-
-# Day and Night
-
-Visible headings:
-
-```text
-Day & Night
-Visible Through Every Hour
-```
-
-The Day & Night section must appear:
-
-- After Available Inventory
-- Before Scroll-driven Assembly
-
-Preserve:
-
-- Existing comparison interaction
-- Day and night visuals
-- Existing slider or interaction behaviour
-- Responsive layout
-- Existing images
-- Existing accessibility support
-- Existing animations
-
-Do not redesign it while changing section order.
-
----
-
-# Scroll-driven Assembly
-
-Visible headings:
-
-```text
-Scroll-driven assembly
-How a UNIPOLE takes shape.
-```
-
-Supporting instruction:
-
-```text
-Scroll to assemble the structure step by step.
-Scroll back to reverse it.
-When complete, drag the model to rotate it.
-```
-
-Required stages:
-
-```text
-01 Foundation
-02 Pole
-03 Support
-04 Frame
-05 Display
-06 Lighting
-07 Campaign Surface
-08 Complete
-```
-
-Preserve:
-
-- Scroll-driven stage progression
-- Reverse progression when scrolling upward
-- Existing GSAP and ScrollTrigger logic
-- Three.js model
-- React Three Fiber scene
-- Drag-to-rotate behaviour
-- Reduced-motion behaviour
-- Responsive layout
-- Stage labels
-- ScrollTrigger cleanup
-- Existing refs
-- Existing model loading
-- Existing performance safeguards
-
-Do not replace or remove:
-
-```text
-src/components/three/HeroScene.tsx
-src/components/three/UnipoleModel.tsx
-src/components/home/AssemblyScene.tsx
-```
-
-These files belong to the Assembly experience, not the main Hero.
-
----
-
-# Installation Journey
-
-Visible headings:
-
-```text
-From Ground to Sky
-The installation journey.
-```
-
-This section must appear directly after Scroll-driven Assembly.
-
-Preserve the installation stages:
-
-- Site Identification
-- Structural Planning
-- Foundation Preparation
-- Pole Installation
-- Display Frame Setup
-- Electrical and Lighting
-- Campaign Mounting
-- Final Inspection
-
-Do not redesign it while changing section order.
-
----
-
-# Industries Served
-
-Visible headings:
-
-```text
-Industries Served
-Trusted across every category that needs visibility.
-```
-
-This section must appear:
-
-- After The Installation Journey
-- Before Business Growth
-
-Preserve the existing industry list and icons.
-
-Do not replace the industry list with fake customer logos or testimonials.
-
----
-
-# Business Growth
-
-Visible headings:
-
-```text
-Business Growth Journey
-How outdoor presence supports growth.
-```
-
-This section must appear:
-
-- After Industries Served
-- Before FAQ
-
-Preserve the existing business-growth journey:
-
-- Strategic Location
-- Campaign Visibility
-- Repeated Exposure
-- Brand Recall
-- Customer Consideration
-- Business Enquiry
-
-Do not add fake performance statistics.
-
----
-
-# FAQ
-
-Visible headings:
-
-```text
-FAQ
-Answers to common questions.
-```
-
-The FAQ must appear:
-
-- After Business Growth
-- Before Enquiry
-
-Preserve:
-
-- Accordion interaction
-- Existing questions and answers
-- Keyboard accessibility
-- `aria-expanded`
-- Current responsive design
-- Current opening and closing behaviour
-
----
-
-# Enquiry
-
-Visible heading:
-
-```text
-Request a campaign proposal.
-```
-
-The Enquiry section must appear directly before Footer.
-
-Preserve:
-
-- Current form fields
-- Validation
-- Submission handling
-- Campaign-plan integration
-- Existing contact information
-- Existing responsive layout
-- Existing success and error handling
-
-Do not change form business logic while reordering sections.
-
----
-
-# Footer
-
-Footer must:
-
-- Remain the final visible website section
-- Preserve existing links
-- Preserve contact details
-- Preserve branding
-- Preserve legal information
-- Preserve responsive behaviour
-
-Campaign drawers, product modals and toast overlays may render after Footer in the React tree because they are overlays, but Footer must remain the final visible page section.
-
----
-
-# Existing public assets
-
-Original usable images may exist in:
-
-```text
-public/images/
-public/images/unipole/
-public/images/hero/
-```
-
-Important existing fallback image:
-
-```text
-public/images/unipole/hero.webp
-```
-
-Before referencing any asset, confirm that the physical file exists.
-
-Use:
-
-```powershell
-Get-ChildItem "D:\unipole_new\adinn-unipole-premium\public\images" -Recurse -File
-```
+Get-ChildItem "D:\Unippole_Single_page_web\public" -Recurse -File
 
 Never invent an asset path.
 
-Do not create empty placeholders for missing assets.
+Never create empty image placeholders.
 
-Do not reference any of the following unless the files physically exist:
+Do not use a missing file merely because it appeared in an older prompt.
 
-```text
-public/images/hero/evening-sky.jpg
-public/images/hero/cloud-01.png
-public/images/hero/cloud-02.png
-public/images/hero/cloud-03.png
-public/images/hero/distant-unipoles.png
-public/images/hero/main-unipole.png
-public/images/hero/road-foreground.png
-public/images/hero/light-trails.png
-```
+The Hero Silk background should remove the need for the broken Hero image-layer files listed above.
 
----
+Responsive requirements
 
-# Campaign-plan behaviour to preserve
+Preserve the current responsive layout.
 
-Keep working:
+Check approximately:
 
-- CampaignPlanProvider
-- CampaignPlanContext
-- Local-storage persistence
-- CampaignPlanDrawer
-- AddedToPlanToast
-- ProductModal
-- Inventory filters
-- Add to Campaign Plan
-- Remove from Campaign Plan
-- View Campaign Plan
-- Product modal URL behaviour
-- Lenis scroll management
-- Focus trapping
-- Focus restoration
-- Body-scroll locking
-- Keyboard accessibility
-
-Do not redesign or break campaign-plan behaviour while editing layout or section order.
-
----
-
-# Responsive requirements
-
-Test the website at approximately:
-
-```text
 360px
 390px
 640px
@@ -1143,208 +387,184 @@ Test the website at approximately:
 1024px
 1280px
 1440px
-1600px and above
-```
 
 Confirm:
 
-- No horizontal overflow
-- No clipped headings
-- No overlapping navigation
-- No cards extending outside the viewport
-- No broken carousel positioning
-- No oversized text on laptops
-- No unreadably small text on mobile
-- Touch controls remain usable
-- Buttons remain reachable
-- Inventory filters wrap correctly
-- Campaign Plan remains usable
-- Day & Night remains usable
-- Assembly remains usable
-- Footer remains readable
+No horizontal overflow
 
----
+Hero content remains readable
 
-# Accessibility requirements
+Buttons remain reachable
 
-Preserve:
+Header does not overlap important content
 
-- Semantic heading hierarchy
-- `aria-labelledby`
-- `aria-expanded`
-- `aria-current`
-- Button labels
-- Carousel labels
-- Focus-visible states
-- Keyboard navigation
-- Reduced-motion support
-- Accessible modal behaviour
-- Focus trapping
-- Focus restoration
-- Screen-reader status announcements where already implemented
+Silk fills the Hero
 
-Do not remove accessibility attributes to simplify code.
+Silk does not affect page height
 
----
+Silk does not block clicks
 
-# Strict working rules
+Text remains readable over the animated background
 
-## Scope protection
+Mobile layout remains unchanged
 
-Make the smallest complete change required.
+Other sections remain visually unchanged
 
-When the task is only to reorder sections:
+Accessibility and motion
 
-- Change only the homepage composition order.
-- Do not edit internal section JSX.
-- Do not change internal styling.
-- Do not change content.
-- Do not change animations.
-- Do not change business logic.
-- Do not change section IDs.
-- Do not change inventory data.
-- Do not change campaign-plan behaviour.
-- Do not change modal behaviour.
-- Do not change Header or Footer design.
-- Do not modify unrelated files.
+Preserve existing accessibility attributes and heading semantics.
 
-When the task is only to adjust one section:
+Preserve reduced-motion support when already present.
 
-- Edit only that section and its directly related styling.
-- Do not redesign neighbouring sections.
-- Do not restructure unrelated components.
-- Do not remove working functionality.
+When reduced motion is enabled:
 
----
+Do not introduce intense motion
 
-## General rules
+Keep the Hero readable
 
-- Inspect the current file before editing.
-- Inspect all relevant imports before deleting anything.
-- Do not assume a file exists.
-- Do not assume an asset exists.
-- Do not duplicate components.
-- Do not leave obsolete duplicate implementations.
-- Do not delete unrelated sections.
-- Do not change routing architecture.
-- Do not change the framework.
-- Do not run Git commands unless explicitly requested.
-- Do not add dependencies unless strictly necessary.
-- Preserve current business behaviour.
-- Preserve current responsive behaviour.
-- Preserve current animations unless the task specifically changes them.
-- Remove only imports and code made unused by the requested change.
-- Report exact files modified.
-- Do not claim validation passed unless commands were actually run.
+Avoid unnecessary movement
 
----
+Do not break the existing reveal logic
 
-# Current implementation priority
+Do not remove focus-visible styles or keyboard behaviour.
 
-When this document conflicts with older code, older prompts or older documentation:
+Strict editing rules
 
-1. Inspect the actual current source files.
-2. Preserve working functionality.
-3. Follow the latest approved project decision.
-4. Use this document as the current source of truth.
-5. Update this document after an approved structural change.
-6. Never restore an older section or layout solely because it exists in old code.
-7. Never restore Campaign Gallery unless explicitly requested.
-8. Never restore the previous photographic Hero unless explicitly requested.
-9. Never restore an old homepage order after the current order has been approved.
+Read this file completely before making changes.
 
----
+Work only in D:\Unippole_Single_page_web.
 
-# Validation commands
+Inspect the current active Hero before editing.
 
-Run commands from:
+Make the smallest complete change.
 
-```powershell
-cd "D:\unipole_new\adinn-unipole-premium"
-```
+Do not redesign unrelated UI.
+
+Do not copy the backup website structure.
+
+Do not reorder sections.
+
+Do not add the unimplemented 3D assembly experience.
+
+Do not add a 3D UNIPOLE model to the Hero.
+
+Do not change content unless explicitly requested.
+
+Do not change business logic.
+
+Do not change section IDs or navigation anchors.
+
+Do not change inventory data.
+
+Do not change campaign-plan behaviour.
+
+Do not run Git commands.
+
+Do not rename project folders.
+
+Do not claim a file was changed unless it was actually changed.
+
+Do not claim validation passed unless the command was actually run.
+
+Do not fix unrelated pre-existing warnings or errors without reporting them first.
+
+Validation commands
+
+Run from the active project:
+
+cd "D:\Unippole_Single_page_web"
 
 Then run:
 
-```powershell
 npm run lint
 npm run build
-```
 
-Fix every error caused by the requested change.
-
-Do not change unrelated components merely to silence unrelated warnings without first reporting them.
+Fix only errors caused by the Hero Silk implementation.
 
 For local preview:
 
-```powershell
 npm run dev
-```
 
-Use the exact local URL printed by Next.js.
+Open the exact local URL printed by Next.js.
 
----
+Confirm the browser no longer requests the missing Hero image-layer files.
 
-# Final validation checklist
+The following console warning is not the cause of the broken Hero and does not need unrelated refactoring during this task:
+
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+Report it as a pre-existing warning if it remains.
+
+Final validation checklist
 
 Before reporting completion, confirm:
 
-- Correct project folder was used
-- Homepage sections follow the approved order
-- Hero appears first
-- About appears after Hero
-- Why Choose appears after About
-- Inventory appears after Why Choose
-- Day & Night appears after Inventory
-- Assembly appears after Day & Night
-- Installation appears after Assembly
-- Industries appears before Business Growth
-- FAQ appears before Enquiry
-- Enquiry appears before Footer
-- Footer is the final visible section
-- Campaign Gallery is not rendered
-- Inventory is not duplicated
-- No other section is duplicated
-- No section ID was changed
-- `#inventory` navigation works
-- No broken-image icons
-- No missing asset paths
-- No horizontal overflow
-- Header has no unwanted stroke before scrolling
-- Hero content is readable
-- Why Choose carousel is responsive
-- Why Choose card width and image height are independently adjustable
-- Inventory filters work
-- Product modal works
-- Campaign Plan works
-- Day & Night works
-- Assembly scroll animation works
-- Assembly reverses when scrolling upward
-- Assembly model remains draggable when complete
-- FAQ works
-- Enquiry form works
-- Mobile layout is readable
-- TypeScript passes
-- Lint passes
-- Production build passes
+Correct project folder was used
 
----
+Only the active Hero background was changed
 
-# Expected completion report
+Silk component was copied or created only once
+
+Exact Silk settings were used
+
+Broken Hero asset references were removed
+
+No missing Hero image requests remain
+
+Existing Hero content is unchanged
+
+Existing Hero layout is unchanged
+
+Existing Hero buttons still work
+
+Header remains unchanged
+
+All other sections remain unchanged
+
+Section order remains unchanged
+
+No 3D assembly section was added
+
+No 3D UNIPOLE model was added to the Hero
+
+No files were copied from the backup except Silk.tsx, when needed
+
+No horizontal overflow exists
+
+Mobile Hero remains usable
+
+TypeScript passes
+
+Build passes
+
+Lint result is reported honestly
+
+Expected completion report
 
 Report only:
 
-1. Files inspected
-2. Files modified
-3. Previous homepage order
-4. New homepage order
-5. What was changed
-6. What was intentionally not changed
-7. Removed section status
-8. Asset paths used
-9. Lint result
-10. Build result
-11. Remaining limitations
+Files inspected
+
+Files copied
+
+Files modified
+
+Active Hero component identified
+
+Missing Hero image references removed
+
+Silk settings used
+
+What was intentionally not changed
+
+Confirmation that no 3D assembly/model work was added
+
+Lint result
+
+Build result
+
+Remaining pre-existing warnings or limitations
 
 Do not provide a vague completion message.
 
-Do not claim success without confirming the actual command results.
+Do not claim success without actual command results.

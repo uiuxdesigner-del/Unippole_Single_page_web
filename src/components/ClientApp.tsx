@@ -10,7 +10,6 @@ import {
   FaqSection,
   GroundToSkySection,
   HeroSection,
-  HowItWorksSection,
   IndustriesSection,
   WhatIsUnipoleSection,
   WhyChooseSection,
