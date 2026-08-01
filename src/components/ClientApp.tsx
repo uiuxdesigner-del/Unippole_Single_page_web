@@ -22,17 +22,7 @@ import { CampaignPlanDrawer } from "@/components/campaign/CampaignPlanDrawer";
 import { AddedToPlanToast } from "@/components/campaign/AddedToPlanToast";
 import { ProductModal } from "@/components/product/ProductModal";
 
-const AssemblyScene = dynamic(
-  () => import("@/components/home/AssemblyScene").then((module) => module.AssemblyScene),
-  {
-    ssr: false,
-    loading: () => (
-      <section className="flex min-h-[70vh] items-center justify-center bg-white">
-        <div className="text-sm text-adinn-muted">Loading interactive structure…</div>
-      </section>
-    ),
-  },
-);
+
 
 function LenisBoot() {
   useLenisSetup();
@@ -50,7 +40,7 @@ function WebsiteContent() {
         <WhyChooseSection />
         <InventorySection />
         <DayNightCompare />
-        <AssemblyScene />
+      
         <GroundToSkySection />
         <IndustriesSection />
         <BusinessGrowthSection />

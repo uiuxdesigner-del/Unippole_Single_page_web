@@ -3,33 +3,26 @@
 import Image from "next/image";
 
 import {
+  animate,
   motion,
+  type PanInfo,
+  useMotionValue,
   useReducedMotion,
 } from "framer-motion";
 
 import {
   ArrowRight,
-  Briefcase,
-  Building2,
-  Car,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   Compass,
   Eye,
-  Film,
-  Gem,
-  GraduationCap,
-  HeartPulse,
-  Landmark,
   Layers,
   MapPin,
   Maximize2,
   MessageCircle,
-  ShoppingBasket,
   Sparkles,
-  Store,
   Sun,
 } from "lucide-react";
 
@@ -42,6 +35,7 @@ import {
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 
 import ScrollFloat from "@/components/text/ScrollFloat";
 import { BrandButton } from "@/components/ui/BrandButton";
@@ -55,9 +49,14 @@ export function HeroSection() {
   const reducedMotion = useReducedMotion();
   const { open } = useCampaignPlan();
 
-  const heroRef = useRef<HTMLElement | null>(null);
-  const silkRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
+  const heroRef =
+    useRef<HTMLElement | null>(null);
+
+  const silkRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const contentRef =
+    useRef<HTMLDivElement | null>(null);
 
   const reveal = reducedMotion
     ? {}
@@ -77,17 +76,18 @@ export function HeroSection() {
     const silk = silkRef.current;
     const content = contentRef.current;
 
-    if (!hero || !silk || !content || reducedMotion) {
+    if (
+      !hero ||
+      !silk ||
+      !content ||
+      reducedMotion
+    ) {
       return;
     }
 
     gsap.registerPlugin(ScrollTrigger);
 
     const context = gsap.context(() => {
-      /*
-       * Background moves more slowly than the page,
-       * creating the smooth parallax effect.
-       */
       gsap.fromTo(
         silk,
         {
@@ -108,9 +108,6 @@ export function HeroSection() {
         },
       );
 
-      /*
-       * Hero text moves slightly upward while scrolling.
-       */
       gsap.fromTo(
         content,
         {
@@ -141,7 +138,6 @@ export function HeroSection() {
       className={styles.hero}
       aria-labelledby="hero-title"
     >
-      {/* Silk animated background */}
       <div
         ref={silkRef}
         className={styles.silkBackground}
@@ -156,7 +152,10 @@ export function HeroSection() {
         />
       </div>
 
-      <div className={styles.scrim} aria-hidden="true" />
+      <div
+        className={styles.scrim}
+        aria-hidden="true"
+      />
 
       <div
         ref={contentRef}
@@ -177,8 +176,9 @@ export function HeroSection() {
             aria-hidden="true"
           />
 
-          Premium outdoor visibility
+          Premium Unipole
         </motion.span>
+
         <ScrollFloat
           id="hero-title"
           containerClassName={styles.title}
@@ -188,7 +188,7 @@ export function HeroSection() {
           stagger={0.018}
           playOnMount
         >
-          One pole. Maximum brand visibility.
+          Stand Tall. Stay Memorable.
         </ScrollFloat>
 
         <motion.div
@@ -203,7 +203,9 @@ export function HeroSection() {
             variant="secondary"
             size="lg"
             className={styles.primaryButton}
-            onClick={() => scrollToHash("#inventory")}
+            onClick={() =>
+              scrollToHash("#inventory")
+            }
           >
             Explore Sites
 
@@ -231,61 +233,195 @@ export function HeroSection() {
   );
 }
 
-const whatIsFeatures = [
-  { icon: Layers, label: "Single-pole design" },
-  { icon: Maximize2, label: "Large creative format" },
-  { icon: Eye, label: "Long-distance visibility" },
-  { icon: Sun, label: "Illuminated & non-illuminated" },
-];
+const aboutFeatures = [
+  {
+    id: "structure",
+    title: "Maximum Visibility",
+    summary:
+      "Strong, sturdy and space-efficient design.",
+    description:
+      "Unipoles are high-impact outdoor structures strategically installed along highways to deliver long-distance visibility, making brands more noticeable, destinations easier to find, and businesses more memorable.",
+  },
+  {
+    id: "visibility",
+    title: "Permanent Branding Asset",
+    summary:
+      "High impact across long viewing distances.",
+    description:
+      "A durable structure that delivers continuous brand presence for years.",
+  },
+  {
+    id: "locations",
+    title: "Landmark Identity",
+    summary:
+      "Present at key junctions and busy routes.",
+    description:
+      "Transforms your business location into a recognisable and memorable destination.",
+  },
+] as const;
+
+type AboutFeatureId =
+  (typeof aboutFeatures)[number]["id"];
 
 export function WhatIsUnipoleSection() {
   const reducedMotion = useReducedMotion();
 
-  const features = [
-    {
-      id: "structure",
-      title: "Single Pole Structure",
-      summary: "Strong, sturdy and space-efficient design.",
-      description:
-        "Built around a single engineered steel pole, a unipole creates a clean roadside presence while securely supporting a large-format advertising display.",
-      icon: Layers,
-    },
-    {
-      id: "visibility",
-      title: "Maximum Visibility",
-      summary: "High impact across long viewing distances.",
-      description:
-        "Its elevated position and large creative area help brands remain visible to approaching traffic across highways, junctions and busy urban corridors.",
-      icon: Eye,
-    },
-    {
-      id: "locations",
-      title: "Strategic Locations",
-      summary: "Present at key junctions and busy routes.",
-      description:
-        "Unipoles are positioned along major roads, commercial areas and high-traffic junctions where audience movement and brand exposure are strongest.",
-      icon: MapPin,
-    },
-  ];
+  const sectionRef =
+    useRef<HTMLElement | null>(null);
 
-  const [activeFeatureId, setActiveFeatureId] = useState(
-    features[0].id,
+  const pinnedContentRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const descriptionRef =
+    useRef<HTMLParagraphElement | null>(null);
+
+  const [
+    activeFeatureId,
+    setActiveFeatureId,
+  ] = useState<AboutFeatureId>(
+    aboutFeatures[0].id,
   );
 
   const activeFeature =
-    features.find(
-      (feature) => feature.id === activeFeatureId,
-    ) ?? features[0];
+    aboutFeatures.find(
+      (feature) =>
+        feature.id === activeFeatureId,
+    ) ?? aboutFeatures[0];
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const pinnedContent =
+      pinnedContentRef.current;
+
+    if (
+      !section ||
+      !pinnedContent ||
+      reducedMotion
+    ) {
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const media = gsap.matchMedia();
+
+    media.add(
+      "(min-width: 1024px)",
+      () => {
+        let previousIndex = -1;
+
+        const scrollTrigger =
+          ScrollTrigger.create({
+            trigger: section,
+            start: "top 72px",
+            end: () =>
+              `+=${Math.max(
+                window.innerHeight * 1.35,
+                900,
+              )}`,
+            pin: pinnedContent,
+            pinSpacing: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+
+            onUpdate: (self) => {
+              const nextIndex = Math.min(
+                aboutFeatures.length - 1,
+                Math.floor(
+                  self.progress *
+                    aboutFeatures.length,
+                ),
+              );
+
+              if (
+                nextIndex === previousIndex
+              ) {
+                return;
+              }
+
+              previousIndex = nextIndex;
+
+              setActiveFeatureId(
+                aboutFeatures[nextIndex].id,
+              );
+            },
+          });
+
+        return () => {
+          scrollTrigger.kill();
+        };
+      },
+    );
+
+    const refreshFrame =
+      window.requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+
+    return () => {
+      window.cancelAnimationFrame(
+        refreshFrame,
+      );
+
+      media.revert();
+    };
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    const description =
+      descriptionRef.current;
+
+    if (
+      !description ||
+      reducedMotion
+    ) {
+      return;
+    }
+
+    gsap.registerPlugin(SplitText);
+
+    const split = SplitText.create(
+      description,
+      {
+        type: "lines",
+        linesClass: "about-line++",
+      },
+    );
+
+    const animation = gsap.from(
+      split.lines,
+      {
+        yPercent: 34,
+        autoAlpha: 0,
+        duration: 0.56,
+        ease: "power2.out",
+        stagger: 0.065,
+        clearProps:
+          "transform,opacity,visibility",
+      },
+    );
+
+    return () => {
+      animation.kill();
+      split.revert();
+    };
+  }, [
+    activeFeature.id,
+    reducedMotion,
+  ]);
 
   return (
     <section
+      ref={sectionRef}
       id="about"
-      className="overflow-hidden bg-white py-20 md:py-28 lg:py-32"
+      className="bg-white pb-20 pt-8 md:pb-24 md:pt-10 lg:pb-28 lg:pt-12"
       aria-labelledby="about-unipole-title"
     >
       <div className="container-x">
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-16 xl:gap-24">
-          {/* Left content */}
+        <div
+          ref={pinnedContentRef}
+          className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-16 xl:gap-24"
+        >
           <div className="mx-auto w-full max-w-[580px] lg:mx-0">
             <h2
               id="about-unipole-title"
@@ -294,150 +430,99 @@ export function WhatIsUnipoleSection() {
               About Unipole
             </h2>
 
-            {/* Dynamic description */}
             <div className="mt-7 min-h-[145px] max-w-[550px] sm:min-h-[120px]">
-              <motion.p
+              <p
                 key={activeFeature.id}
-                initial={
-                  reducedMotion
-                    ? false
-                    : {
-                        opacity: 0,
-                        y: 10,
-                        filter: "blur(4px)",
-                      }
-                }
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  filter: "blur(0px)",
-                }}
-                transition={{
-                  duration: reducedMotion ? 0 : 0.42,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+                ref={descriptionRef}
                 className="text-base leading-[1.75] text-neutral-600 md:text-lg"
               >
                 {activeFeature.description}
-              </motion.p>
+              </p>
             </div>
 
-            {/* Interactive features */}
-            <div className="mt-5 border-t border-neutral-200">
-              {features.map((feature) => {
-                const Icon = feature.icon;
-                const isActive =
-                  activeFeatureId === feature.id;
+            <div className="mt-5 space-y-3">
+              {aboutFeatures.map(
+                (feature) => {
+                  const isActive =
+                    activeFeatureId ===
+                    feature.id;
 
-                return (
-                  <motion.button
-                    key={feature.id}
-                    type="button"
-                    aria-pressed={isActive}
-                    onMouseEnter={() =>
-                      setActiveFeatureId(feature.id)
-                    }
-                    onFocus={() =>
-                      setActiveFeatureId(feature.id)
-                    }
-                    onClick={() =>
-                      setActiveFeatureId(feature.id)
-                    }
-                    animate={{
-                      x:
-                        isActive && !reducedMotion
-                          ? 4
-                          : 0,
-                    }}
-                    transition={{
-                      duration: reducedMotion ? 0 : 0.36,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                    className="group flex w-full items-center gap-4 border-b border-neutral-200 py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-adinn-red/30 focus-visible:ring-offset-4"
-                  >
-                    <span
-                      className={[
-                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-                        "transition-colors duration-300",
+                  return (
+                    <div
+                      key={feature.id}
+                      aria-current={
                         isActive
-                          ? "bg-red-50 text-adinn-red"
-                          : "bg-neutral-100 text-neutral-700 group-hover:bg-red-50 group-hover:text-adinn-red",
+                          ? "true"
+                          : undefined
+                      }
+                      className={[
+                        "block w-full rounded-[14px] px-5 py-4 text-left",
+                        "transition-colors duration-200",
+                        isActive
+                          ? "bg-[#EEEDF0]"
+                          : "bg-[#F7F7F8]",
                       ].join(" ")}
                     >
-                      <Icon
-                        size={22}
-                        strokeWidth={1.6}
-                        aria-hidden="true"
-                      />
-                    </span>
-
-                    <span className="min-w-0 flex-1">
                       <span className="block text-base font-semibold tracking-[-0.015em] text-neutral-950 md:text-lg">
                         {feature.title}
                       </span>
 
-                      <span className="mt-1 block text-sm leading-relaxed text-neutral-500 md:text-base">
+                      <span className="mt-1.5 block text-sm leading-relaxed text-neutral-500 md:text-base">
                         {feature.summary}
                       </span>
-                    </span>
-
-                    <motion.span
-                      aria-hidden="true"
-                      animate={{
-                        width: isActive ? 26 : 0,
-                        opacity: isActive ? 1 : 0,
-                      }}
-                      transition={{
-                        duration: reducedMotion ? 0 : 0.36,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      className="hidden h-px shrink-0 bg-adinn-red sm:block"
-                    />
-                  </motion.button>
-                );
-              })}
+                    </div>
+                  );
+                },
+              )}
             </div>
           </div>
 
-          {/* Right image */}
-          <motion.div
-            initial={
-              reducedMotion
-                ? false
-                : {
-                    opacity: 0,
-                    y: 24,
-                    scale: 0.985,
-                  }
-            }
-            whileInView={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.2,
-            }}
-            transition={{
-              duration: reducedMotion ? 0 : 0.8,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="relative aspect-[16/11] overflow-hidden rounded-[26px] bg-neutral-100 lg:aspect-[4/5] xl:aspect-[5/6]"
-          >
-            <Image
-              src="/images/unipole-about.jpg"
-              alt="Large unipole advertising structure positioned above a busy urban road"
-              fill
-              sizes="(min-width: 1024px) 55vw, 100vw"
-              className="object-cover"
-            />
+          <div className="flex min-h-[560px] items-center justify-center lg:min-h-[620px]">
+            <motion.div
+              initial={
+                reducedMotion
+                  ? false
+                  : {
+                      opacity: 0,
+                      y: 18,
+                    }
+              }
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+                amount: 0.2,
+              }}
+              transition={{
+                duration:
+                  reducedMotion
+                    ? 0
+                    : 0.65,
+                ease: [
+                  0.22,
+                  1,
+                  0.36,
+                  1,
+                ],
+              }}
+              className="relative h-[430px] w-full overflow-hidden rounded-[26px] bg-neutral-100 sm:h-[470px] lg:h-[500px] xl:h-[530px]"
+            >
+              <Image
+                src="/images/unipole-about.jpg"
+                alt="Large unipole advertising structure positioned above a busy urban road"
+                fill
+                sizes="(min-width: 1024px) 55vw, 100vw"
+                className="object-cover object-center"
+              />
 
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent"
-            />
-          </motion.div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent"
+              />
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -448,44 +533,44 @@ const benefits = [
   {
     n: "01",
     icon: Eye,
-    title: "High Visibility",
+    title: "Long-Distance Visibility",
     description:
-      "Elevated positioning and large-format displays help brands remain visible from longer distances.",
+      "Capture attention well before customers reach your location.",
   },
   {
     n: "02",
     icon: MapPin,
-    title: "Strategic Placement",
+    title: "High Brand Recall",
     description:
-      "Locations are selected across key roads, junctions, commercial areas and high-traffic corridors.",
+      "Repeated exposure strengthens recognition and builds familiarity.",
   },
   {
     n: "03",
     icon: Sparkles,
-    title: "Strong Brand Recall",
+    title: "Strategic Placement",
     description:
-      "Repeated exposure helps campaigns remain familiar to daily commuters and local audiences.",
+      "Position your brand where traffic, visibility, and impact are highest.",
   },
   {
     n: "04",
     icon: Sun,
-    title: "Day and Night Presence",
+    title: "Directional Advantage",
     description:
-      "Illuminated options maintain campaign visibility beyond daylight hours.",
+      "Guide travellers and make your business easier to locate.",
   },
   {
     n: "05",
     icon: Maximize2,
-    title: "Large Creative Impact",
+    title: "24×7 Brand Exposure",
     description:
-      "Generous display formats provide space for bold, focused and readable brand communication.",
+      "Promote your brand around the clock without interruption.",
   },
   {
     n: "06",
     icon: Layers,
-    title: "Flexible Campaign Planning",
+    title: "Long-Term Branding Asset",
     description:
-      "Locations can be shortlisted according to city, area, size, illumination and availability.",
+      "A permanent branding solution that delivers value for years.",
   },
 ];
 
@@ -579,10 +664,12 @@ type WhyCarouselLayout = {
 export function WhyChooseSection() {
   const reducedMotion = useReducedMotion();
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const trackX = useMotionValue(0);
+  const animationRef = useRef<ReturnType<typeof animate> | null>(null);
 
   const [currentIndex, setCurrentIndex] = useState(2);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [animateTrack, setAnimateTrack] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
   const [layout, setLayout] = useState<WhyCarouselLayout>({
     cardWidth: 0,
     imageHeight: 0,
@@ -604,11 +691,6 @@ export function WhyChooseSection() {
   const slides = useMemo(() => {
     const total = cards.length;
 
-    const originalSlides = cards.map((card, index) => ({
-      card,
-      key: `original-${index}`,
-    }));
-
     return [
       {
         card: cards[total - 2],
@@ -618,7 +700,10 @@ export function WhyChooseSection() {
         card: cards[total - 1],
         key: "clone-before-1",
       },
-      ...originalSlides,
+      ...cards.map((card, index) => ({
+        card,
+        key: `original-${index}`,
+      })),
       {
         card: cards[0],
         key: "clone-after-1",
@@ -752,17 +837,100 @@ export function WhyChooseSection() {
     };
   }, []);
 
+  const slideStep = layout.cardWidth + layout.gap;
+  const targetTrackX = layout.peek - currentIndex * slideStep;
+
   const activeIndex =
     ((currentIndex - 2) % cards.length + cards.length) % cards.length;
 
-  const slideStep = layout.cardWidth + layout.gap;
-  const trackX = layout.peek - currentIndex * slideStep;
   const fadeWidth = Math.min(Math.max(layout.peek * 0.6, 72), 190);
 
-  const moveTo = (index: number) => {
-    if (isAnimating || layout.cardWidth === 0) return;
+  useEffect(() => {
+    if (layout.cardWidth === 0 || isDragging) {
+      return;
+    }
 
-    setAnimateTrack(true);
+    animationRef.current?.stop();
+
+    if (!isAnimating || reducedMotion) {
+      trackX.set(targetTrackX);
+
+      if (isAnimating) {
+        const firstOriginalIndex = 2;
+        const firstTrailingCloneIndex = firstOriginalIndex + cards.length;
+
+        let resetIndex: number | null = null;
+
+        if (currentIndex >= firstTrailingCloneIndex) {
+          resetIndex = currentIndex - cards.length;
+        } else if (currentIndex < firstOriginalIndex) {
+          resetIndex = currentIndex + cards.length;
+        }
+
+        if (resetIndex !== null) {
+          const resetX = layout.peek - resetIndex * slideStep;
+          trackX.set(resetX);
+          setCurrentIndex(resetIndex);
+        }
+
+        setIsAnimating(false);
+      }
+
+      return;
+    }
+
+    const controls = animate(trackX, targetTrackX, {
+      duration: 0.62,
+      ease: [0.22, 1, 0.36, 1],
+      onComplete: () => {
+        const firstOriginalIndex = 2;
+        const firstTrailingCloneIndex = firstOriginalIndex + cards.length;
+
+        let resetIndex: number | null = null;
+
+        if (currentIndex >= firstTrailingCloneIndex) {
+          resetIndex = currentIndex - cards.length;
+        } else if (currentIndex < firstOriginalIndex) {
+          resetIndex = currentIndex + cards.length;
+        }
+
+        if (resetIndex !== null) {
+          const resetX = layout.peek - resetIndex * slideStep;
+          trackX.set(resetX);
+          setCurrentIndex(resetIndex);
+        }
+
+        setIsAnimating(false);
+      },
+    });
+
+    animationRef.current = controls;
+
+    return () => {
+      controls.stop();
+    };
+  }, [
+    cards.length,
+    currentIndex,
+    isAnimating,
+    isDragging,
+    layout.cardWidth,
+    layout.peek,
+    reducedMotion,
+    slideStep,
+    targetTrackX,
+    trackX,
+  ]);
+
+  const moveTo = (index: number) => {
+    if (
+      isAnimating ||
+      isDragging ||
+      layout.cardWidth === 0
+    ) {
+      return;
+    }
+
     setIsAnimating(true);
     setCurrentIndex(index);
   };
@@ -775,33 +943,63 @@ export function WhyChooseSection() {
     moveTo(currentIndex + 1);
   };
 
-  const handleAnimationComplete = () => {
-    if (!isAnimating) return;
+  const snapBackToCurrent = () => {
+    animationRef.current?.stop();
+    setIsAnimating(true);
 
-    const firstOriginalIndex = 2;
-    const lastOriginalIndex = firstOriginalIndex + cards.length - 1;
-    const firstTrailingCloneIndex = firstOriginalIndex + cards.length;
-
-    let resetIndex: number | null = null;
-
-    if (currentIndex >= firstTrailingCloneIndex) {
-      resetIndex = firstOriginalIndex;
-    } else if (currentIndex < firstOriginalIndex) {
-      resetIndex = lastOriginalIndex;
+    if (reducedMotion) {
+      trackX.set(targetTrackX);
+      setIsAnimating(false);
+      return;
     }
 
-    setIsAnimating(false);
-
-    if (resetIndex === null) return;
-
-    setAnimateTrack(false);
-    setCurrentIndex(resetIndex);
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        setAnimateTrack(true);
-      });
+    const controls = animate(trackX, targetTrackX, {
+      duration: 0.42,
+      ease: [0.22, 1, 0.36, 1],
+      onComplete: () => {
+        setIsAnimating(false);
+      },
     });
+
+    animationRef.current = controls;
+  };
+
+  const handleDragEnd = (
+    _event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo,
+  ) => {
+    setIsDragging(false);
+
+    if (layout.cardWidth === 0) {
+      return;
+    }
+
+    const projectedOffset =
+      info.offset.x + info.velocity.x * 0.16;
+
+    const movementThreshold = Math.min(
+      Math.max(slideStep * 0.22, 64),
+      120,
+    );
+
+    if (Math.abs(projectedOffset) < movementThreshold) {
+      snapBackToCurrent();
+      return;
+    }
+
+    const rawSteps = Math.round(
+      Math.abs(projectedOffset) / Math.max(slideStep * 0.72, 1),
+    );
+
+    const steps = Math.min(Math.max(rawSteps, 1), 2);
+
+    setIsAnimating(true);
+
+    if (projectedOffset < 0) {
+      setCurrentIndex(currentIndex + steps);
+    } else {
+      setCurrentIndex(currentIndex - steps);
+    }
   };
 
   const goToSlide = (index: number) => {
@@ -825,29 +1023,29 @@ export function WhyChooseSection() {
             id="why-unipole-title"
             className="mt-2 text-[clamp(2.35rem,3.8vw,3.75rem)] font-regular leading-[1] tracking-[-0.045em] text-neutral-950"
           >
-            UNIPOLE Advertising
+            UNIPOLE
           </h2>
         </div>
 
-        <div className="absolute bottom-0 right-5 hidden items-center gap-1 md:flex sm:right-8 lg:right-12">
+        <div className="absolute bottom-0 right-5 hidden items-center gap-2 sm:right-8 md:flex lg:right-12">
           <button
             type="button"
             onClick={showPrevious}
-            disabled={isAnimating}
+            disabled={isAnimating || isDragging}
             aria-label="Show previous benefit"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-neutral-800 transition-all duration-300 hover:bg-neutral-100 hover:text-black active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-800 transition-transform duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
           >
-            <ChevronLeft size={28} strokeWidth={1.35} />
+            <ChevronLeft size={27} strokeWidth={1.4} />
           </button>
 
           <button
             type="button"
             onClick={showNext}
-            disabled={isAnimating}
+            disabled={isAnimating || isDragging}
             aria-label="Show next benefit"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-neutral-800 transition-all duration-300 hover:bg-neutral-100 hover:text-black active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-800 transition-transform duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
           >
-            <ChevronRight size={28} strokeWidth={1.35} />
+            <ChevronRight size={27} strokeWidth={1.4} />
           </button>
         </div>
       </div>
@@ -860,29 +1058,20 @@ export function WhyChooseSection() {
         className="relative mt-14 w-full overflow-hidden md:mt-16"
       >
         <motion.div
-          initial={false}
-          animate={{
-            x: layout.cardWidth > 0 ? trackX : 0,
-            opacity: layout.cardWidth > 0 ? 1 : 0,
-          }}
-          transition={
-            animateTrack && !reducedMotion
-              ? {
-                  x: {
-                    duration: 0.85,
-                    ease: [0.65, 0, 0.35, 1],
-                  },
-                  opacity: {
-                    duration: 0.25,
-                  },
-                }
-              : {
-                  duration: 0,
-                }
+          drag="x"
+          dragListener={
+            !isAnimating && layout.cardWidth > 0
           }
-          onAnimationComplete={handleAnimationComplete}
-          className="flex items-stretch will-change-transform"
+          dragMomentum={false}
+          dragDirectionLock
+          onDragStart={() => {
+            animationRef.current?.stop();
+            setIsDragging(true);
+          }}
+          onDragEnd={handleDragEnd}
+          className="flex cursor-grab touch-pan-y select-none items-stretch active:cursor-grabbing"
           style={{
+            x: trackX,
             gap: `${layout.gap}px`,
           }}
         >
@@ -895,7 +1084,7 @@ export function WhyChooseSection() {
               }}
             >
               <div
-                className="group relative w-full shrink-0 overflow-hidden rounded-[24px] bg-neutral-200 sm:rounded-[28px]"
+                className="relative w-full shrink-0 overflow-hidden rounded-[24px] bg-neutral-200 sm:rounded-[28px]"
                 style={{
                   height: `${layout.imageHeight}px`,
                 }}
@@ -904,8 +1093,9 @@ export function WhyChooseSection() {
                   src={slide.card.image}
                   alt={slide.card.imageAlt}
                   fill
+                  draggable={false}
                   sizes="(min-width: 1600px) 520px, (min-width: 1280px) 460px, (min-width: 1024px) 390px, (min-width: 768px) 76vw, (min-width: 640px) 84vw, calc(100vw - 44px)"
-                  className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.025]"
+                  className="pointer-events-none object-cover object-center"
                 />
               </div>
 
@@ -916,8 +1106,8 @@ export function WhyChooseSection() {
                 }}
               >
                 <h3 className="text-[18px] font-regular leading-tight tracking-[-0.025em] text-neutral-950 sm:text-[20px] lg:text-[22px] 2xl:text-[24px]">
-  {slide.card.title}
-</h3>
+                  {slide.card.title}
+                </h3>
 
                 <p className="mt-2 max-w-[620px] text-[15px] leading-[1.55] text-neutral-600 sm:text-base md:text-[17px]">
                   {slide.card.description}
@@ -948,9 +1138,9 @@ export function WhyChooseSection() {
         <button
           type="button"
           onClick={showPrevious}
-          disabled={isAnimating}
+          disabled={isAnimating || isDragging}
           aria-label="Show previous benefit"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-900 transition-transform duration-300 active:scale-95 disabled:opacity-40"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-900 transition-transform duration-200 active:scale-95 disabled:opacity-40"
         >
           <ChevronLeft size={24} strokeWidth={1.5} />
         </button>
@@ -958,9 +1148,9 @@ export function WhyChooseSection() {
         <button
           type="button"
           onClick={showNext}
-          disabled={isAnimating}
+          disabled={isAnimating || isDragging}
           aria-label="Show next benefit"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-900 transition-transform duration-300 active:scale-95 disabled:opacity-40"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-900 transition-transform duration-200 active:scale-95 disabled:opacity-40"
         >
           <ChevronRight size={24} strokeWidth={1.5} />
         </button>
@@ -978,14 +1168,15 @@ export function WhyChooseSection() {
               key={card.title}
               type="button"
               onClick={() => goToSlide(index)}
+              disabled={isAnimating || isDragging}
               aria-label={`Show ${card.title}`}
               aria-current={isActive ? "true" : undefined}
               className={[
                 "h-2.5 w-2.5 rounded-full",
-                "transition-all duration-500 ease-in-out",
+                "transition-all duration-300 ease-out",
                 isActive
                   ? "scale-110 bg-neutral-950"
-                  : "bg-neutral-300 hover:bg-neutral-500",
+                  : "bg-neutral-300",
               ].join(" ")}
             />
           );
@@ -1152,46 +1343,8 @@ export function BusinessGrowthSection() {
   );
 }
 
-const industries = [
-  { title: "Real Estate", icon: Building2 },
-  { title: "Retail", icon: Store },
-  { title: "Jewellery", icon: Gem },
-  { title: "Healthcare", icon: HeartPulse },
-  { title: "Education", icon: GraduationCap },
-  { title: "Automobile", icon: Car },
-  { title: "FMCG", icon: ShoppingBasket },
-  { title: "Banking & Finance", icon: Landmark },
-  { title: "Entertainment", icon: Film },
-  { title: "Corporate Branding", icon: Briefcase },
-];
-
 export function IndustriesSection() {
-  return (
-    <section className="bg-adinn-warm py-20 md:py-28">
-      <div className="container-x">
-        <div className="max-w-2xl">
-          <span className="text-xs font-medium uppercase tracking-[0.25em] text-adinn-red">
-            Industries Served
-          </span>
-          <h2 className="mt-3 text-h2 text-adinn-ink">
-            Trusted across every category that needs visibility.
-          </h2>
-        </div>
-
-        <ul className="mt-12 grid gap-x-8 sm:grid-cols-2 lg:grid-cols-2">
-          {industries.map((industry) => (
-            <li
-              key={industry.title}
-              className="flex items-center gap-4 border-t border-adinn-border py-5"
-            >
-              <industry.icon size={20} strokeWidth={1.5} className="text-adinn-ink" />
-              <span className="text-base font-medium text-adinn-ink">{industry.title}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 const howItWorksSteps = [

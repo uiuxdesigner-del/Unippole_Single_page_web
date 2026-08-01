@@ -1,570 +1,338 @@
-ADINN UNIPOLE Website — Current Claude Context
+UNIPOLE Website — UI/UX Development Progress
 
-Active project root
+Project: UNIPOLE Single Page WebsiteProject path: D:\Unippole_Single_page_webUpdated: 01 August 2026Primary stack: Next.js 16, TypeScript, Tailwind CSS, Framer Motion, GSAP/ScrollTrigger, React Three Fiber
 
-Always work only inside:
+1. Current Source of Truth
 
-D:\Unippole_Single_page_web
+Use the latest updated Home Sections file:
 
-Before editing, confirm the terminal location:
+HomeSections_Why_Drag_Fixed.tsx
 
-cd "D:\Unippole_Single_page_web"
-Get-Location
+Replace it in the project as:
 
-The output must be:
+src/components/home/HomeSections.tsx
 
-D:\Unippole_Single_page_web
+The latest Inventory section file is:
 
-Do not make active website changes inside:
+InventorySection_modal_scroll_image_fix.tsx
 
-D:\unipole_new\adinn-unipole-premium-current-backup
+Replace it in the project as:
 
-That folder is only a backup/reference source. It may be read only when a specific reusable file is requested.
+src/components/home/InventorySection.tsx
 
-Do not rename, move, replace or restructure either project folder.
+The current 3D CTA implementation uses:
 
-Current project priority
+src/components/home/ProceduralUnipole.tsx
 
-The current task is a small, protected Hero update.
+src/components/home/CTAUnipoleScene.tsx
 
-Update only the existing Hero background to use the Silk animated effect.
+src/components/home/ProposalBanner3D.tsx
 
-Do not redesign or rebuild the website.
+2. Hero Section
 
-Do not change the overall structure, section order, page composition, content, navigation, typography, spacing, buttons, business flow or responsive behaviour.
+Completed
 
-Make the smallest complete change required.
+Preserved the existing Hero structure and visual design.
 
-Important scope clarification
+Silk animated background retained.
 
-The separate 3D UNIPOLE assembly/model experience has not been implemented or approved in this active project yet.
+Added smooth GSAP parallax movement to the background.
 
-Therefore, do not create, copy, restore or integrate any of the following as part of the current work:
+Hero content moves slightly upward while scrolling.
 
-AssemblyScene.tsx
-HeroScene.tsx
-UnipoleModel.tsx
-Scroll-driven Assembly
-3D UNIPOLE model
-Drag-to-rotate model
-Scroll-to-assemble stages
-Foundation / Pole / Frame / Lighting 3D sequence
-Drei model helpers
-GLTF model loading
+Existing heading, badge and CTA buttons are preserved.
 
-Do not add a 3D billboard model to the main Hero.
+Explore Sites scrolls to the Inventory section.
 
-Do not add a separate 3D section.
+Plan Campaign opens the campaign planning interface.
 
-Do not change the homepage order to make space for a 3D section.
+Reduced-motion support is preserved.
 
-3D assembly work is a future task and is outside the current scope.
+3. About UNIPOLE Section
 
-The Silk effect is allowed because it is only an animated shader background. It must not be turned into a 3D UNIPOLE scene.
+Structure
 
-Current Hero update
+The original layout was preserved:
 
-Required result
+Heading on the left.
 
-Preserve the existing Hero exactly as it currently appears, except for replacing the broken image-based background layers with Silk.
+Dynamic description below the heading.
 
-Keep unchanged:
+Three feature content blocks below the description.
 
-Hero height
+UNIPOLE image on the right.
 
-Hero layout
+No new timeline, extra cards or redesigned structure.
 
-Hero text
+Completed UI Changes
 
-Heading line breaks
+Section background is pure white.
 
-Supporting copy
+Reduced the excessive top spacing.
 
-Buttons
+Image height was reduced.
 
-Button actions
+Image remains vertically centred with balanced space above and below.
 
-Text alignment
+Removed all feature icons.
 
-Foreground layout
+Removed the small red active indicator line.
 
-Existing reveal animation
+Feature blocks use a mild grey filled background.
 
-Existing scroll behaviour
+Active feature background:
 
-Existing responsive behaviour
+#EEEDF0
 
-Header interaction
+Text colours remain unchanged.
 
-Navigation anchors
+Rounded feature blocks retained.
 
-Mobile layout
+Hover interaction was removed.
 
-Accessibility attributes
+Click interaction was removed.
 
-Do not redesign the Hero into a split layout.
+Focus-triggered content changes were removed.
 
-Do not add cards, statistics, badges, location counts, format counts or extra content.
+Feature state now changes only according to scrolling.
 
-Do not add React Bits sample branding or sample copy.
+Scroll Behaviour
 
-Broken Hero assets
+The section is pinned on desktop using GSAP ScrollTrigger.
 
-The active project currently requests missing Hero assets such as:
+During scrolling:
 
-/images/hero/evening-sky.jpg
-/images/hero/distant-unipoles.png
-/images/hero/main-unipole.png
-/images/hero/road-foreground.png
-/images/hero/cloud-01.png
-/images/hero/cloud-02.png
-/images/hero/cloud-03.png
-/images/hero/light-trails.png
+Single Pole Structure becomes active.
 
-These references return 404 errors in the active project.
+Maximum Visibility becomes active.
 
-Remove only these missing Hero background-layer references from the active Hero implementation.
+Strategic Locations becomes active.
 
-Do not delete unrelated images.
+The main paragraph updates according to the active scroll stage.
 
-Do not change image paths used by other sections.
+Text Animation
 
-Do not create empty placeholder files with these names.
+Dynamic description uses GSAP SplitText.
 
-Silk component source
+Animation is line-by-line.
 
-A working Silk component is available in the backup project at:
+Heavy 3D rotation was removed.
 
-D:\unipole_new\adinn-unipole-premium-current-backup\src\components\ui\Silk.tsx
+autoSplit was removed from this section to reduce repeated recalculation.
 
-It may be copied into the active project only when required.
+Animation uses a lightweight upward fade.
 
-Preferred target location, if compatible with the active project structure:
+Reduced-motion preference is respected.
 
-D:\Unippole_Single_page_web\src\components\ui\Silk.tsx
+Performance Changes
 
-Before copying:
+To reduce hanging and unnecessary browser work:
 
-Inspect the active project structure.
+Removed scroll scrub.
 
-Confirm whether src/components/ui exists.
+State updates happen only when the active feature index changes.
 
-Confirm the current import alias configuration.
+Removed hover-driven state updates.
 
-Confirm whether a Silk component already exists.
+Removed heavy 3D SplitText rotation.
 
-Do not create duplicate Silk implementations.
+Only the changing description is split.
 
-Copy only Silk.tsx from the backup project.
+Section pin duration was shortened.
 
-Do not copy the backup project’s Hero, Header, CSS, page composition, sections, layouts, contexts or data files.
+ScrollTrigger cleanup is included.
 
-Silk settings
+4. Why Choose UNIPOLE Advertising Section
 
-Use these exact settings unless the user explicitly requests a later visual adjustment:
+Completed UI
 
-<Silk
-  speed={5}
-  scale={1}
-  color="#b83f52"
-  noiseIntensity={1.5}
-  rotation={0}
-/>
+Existing carousel design preserved.
 
-Do not replace these settings with a public React Bits example.
+Card sizes remain responsive.
 
-Do not add sample logos, badges, navigation, headings or buttons from React Bits.
+Previous and next navigation buttons are retained.
 
-Hero layering
+Arrow buttons now have a visible background without requiring hover:
 
-Use this layer order:
+#EEEDF0
 
-Silk animated background
+Pagination dots remain available.
 
-Existing readability overlay or gradient
+Images no longer use hover zoom.
 
-Existing foreground decorative content that is already working
+Native browser image dragging is disabled.
 
-Existing Hero text and actions
+Drag Interaction
 
-Existing Header
+The carousel now supports:
 
-Required CSS behaviour:
+Mouse dragging.
 
-Hero wrapper:
-position: relative
-isolation: isolate
-overflow: hidden
+Touch swiping.
 
-Silk wrapper:
-position: absolute
-inset: 0
-z-index: 0
-pointer-events: none
-width: 100%
-height: 100%
+Grab cursor.
 
-Existing overlay:
-z-index: 1
-must remain translucent
+Grabbing cursor while dragging.
 
-Existing Hero foreground content:
-position: relative
-z-index: 2
+Velocity-aware swipe behaviour.
 
-The Silk wrapper and Canvas must fill the complete Hero.
+Smooth snap to the nearest card.
 
-Do not place an opaque white background or fully opaque gradient above Silk.
+Small drag returns to the current card.
 
-Do not allow the Canvas to capture clicks or touch events.
+Larger or faster drag moves to the next or previous card.
 
-Do not change the Header while fixing Hero layering unless a Hero-only stacking issue makes one tiny z-index adjustment strictly necessary.
+Infinite-loop reset without a visible jump.
 
-Dependency rules
+Arrow and pagination interactions are protected while animation or dragging is active.
 
-Inspect package.json before installing anything.
+Vertical page scrolling remains available through touch-pan-y.
 
-The project may already contain Three.js or React Three Fiber.
+5. Inventory Section
 
-Use existing packages when available.
+Completed
 
-Do not install or add dependencies for the future 3D assembly experience.
+Dynamic inventory data added for:
 
-Do not install:
+400 series
 
-Drei solely for this task
+500 series
 
-GLTF loaders solely for this task
+600 series
 
-Additional 3D model libraries
+800 series
 
-Shadcn packages
+900 series
 
-React Bits packages through CLI
+Complete inventory cards are clickable.
 
-Do not run:
+Pointer cursor is shown on interactive cards.
 
-npx shadcn add ...
-pnpm dlx shadcn ...
+Inventory popup uses the selected card image.
 
-The local Silk component should be used directly.
+Optional variation-specific images are supported.
 
-Current website protection
+Variation navigation arrows are positioned on the overall modal.
 
-Before editing, inspect the actual current files in:
+Background page scrolling is locked while the modal is open.
 
-D:\Unippole_Single_page_web
+Only the right details panel scrolls.
 
-Do not assume the file structure from the backup project matches the active project.
+Details scrollbar is hidden visually.
 
-Possible Hero locations may include:
+Popup image uses object-contain to prevent unwanted cropping.
 
-src/components/home/HeroSection.tsx
-src/components/home/HeroSection.module.css
-src/components/sections/HeroSection.tsx
-src/components/ClientApp.tsx
-src/app/page.tsx
-src/app/globals.css
+Variation cards use filled styling without border strokes.
 
-Find the active Hero by tracing imports from the rendered page.
+Filtered single-card view includes the campaign CTA beneath it.
 
-Modify only:
+Full inventory view uses:
 
-The active Hero component
+Four cards in the first row.
 
-Its directly related Hero stylesheet
+Fifth card and CTA in the second row.
 
-One local Silk component file, if needed
+6. 3D CTA Section
 
-Do not create a second Hero.
+Completed
 
-Do not import a Hero from the backup project.
+Procedural React Three Fiber UNIPOLE model implemented.
 
-Do not replace the active page composition.
+Main foreground UNIPOLE rotates automatically.
 
-Sections that must remain unchanged
+Main model can be manually dragged.
 
-Preserve every current section exactly in its current order.
+Background UNIPOLE structures remain static.
 
-Do not reorder, remove, duplicate or redesign any section while implementing Silk.
+Camera remains fixed.
 
-Do not modify:
+Dark night environment retained.
 
-Header
+Stars and comet-like visual effects included.
 
-About / What is a UNIPOLE
+Ground and background treatment retained.
 
-Why Choose
+No extra HTML marketing copy was added over the 3D CTA.
 
-Inventory
+7. Industries Served Section
 
-Day and Night
+The complete visible section was removed:
 
-Installation journey
+Industries Served
 
-Industries
+Trusted across every category that needs visibility.
 
-Business growth
+To avoid breaking the existing import in ClientApp.tsx, the export remains as:
 
-FAQ
+export function IndustriesSection() {
+  return null;
+}
 
-Enquiry
+This keeps the application import stable while rendering no section.
 
-Footer
+8. Important Design Rules Followed
 
-Product details modal
+Do not redesign the existing page structure unless specifically requested.
 
-Campaign plan
+Implement animations inside the existing UI.
 
-Toast notifications
+Keep the About section clean and lightweight.
 
-Site data
+Use white as the About section background.
 
-Filters
+Use #EEEDF0 for active grey fills and visible control backgrounds.
 
-Forms
+Avoid excessive shadows, heavy 3D text effects and unnecessary hover effects.
 
-The actual active website is the source of truth for section order.
+Preserve responsive behaviour.
 
-Do not apply an order from an older prompt, backup project or outdated document.
+Respect reduced-motion accessibility.
 
-About / What is a UNIPOLE protection
+Prefer ready-to-use complete code instead of partial fragments.
 
-The “What is a UNIPOLE” section is not part of the current Hero Silk task.
+9. Current Main File Mapping
 
-Do not change its content, image, layout, icons, spacing or animation while implementing Silk.
+Downloaded file
 
-A later task may update that section separately.
+Project destination
 
-Header protection
+HomeSections_Why_Drag_Fixed.tsx
 
-Preserve the current Header design and behaviour.
+src/components/home/HomeSections.tsx
 
-Do not add or remove:
+InventorySection_modal_scroll_image_fix.tsx
 
-Backgrounds
+src/components/home/InventorySection.tsx
 
-Borders
+10. Recommended Verification
 
-Rings
-
-Shadows
-
-Navigation links
-
-Mobile menu behaviour
-
-Scroll state behaviour
-
-Only adjust a Header z-index when strictly required to keep the unchanged Header above the Hero, and report that change clearly.
-
-Asset rules
-
-Before referencing any asset, confirm the physical file exists.
-
-Use PowerShell when needed:
-
-Get-ChildItem "D:\Unippole_Single_page_web\public" -Recurse -File
-
-Never invent an asset path.
-
-Never create empty image placeholders.
-
-Do not use a missing file merely because it appeared in an older prompt.
-
-The Hero Silk background should remove the need for the broken Hero image-layer files listed above.
-
-Responsive requirements
-
-Preserve the current responsive layout.
-
-Check approximately:
-
-360px
-390px
-640px
-768px
-1024px
-1280px
-1440px
-
-Confirm:
-
-No horizontal overflow
-
-Hero content remains readable
-
-Buttons remain reachable
-
-Header does not overlap important content
-
-Silk fills the Hero
-
-Silk does not affect page height
-
-Silk does not block clicks
-
-Text remains readable over the animated background
-
-Mobile layout remains unchanged
-
-Other sections remain visually unchanged
-
-Accessibility and motion
-
-Preserve existing accessibility attributes and heading semantics.
-
-Preserve reduced-motion support when already present.
-
-When reduced motion is enabled:
-
-Do not introduce intense motion
-
-Keep the Hero readable
-
-Avoid unnecessary movement
-
-Do not break the existing reveal logic
-
-Do not remove focus-visible styles or keyboard behaviour.
-
-Strict editing rules
-
-Read this file completely before making changes.
-
-Work only in D:\Unippole_Single_page_web.
-
-Inspect the current active Hero before editing.
-
-Make the smallest complete change.
-
-Do not redesign unrelated UI.
-
-Do not copy the backup website structure.
-
-Do not reorder sections.
-
-Do not add the unimplemented 3D assembly experience.
-
-Do not add a 3D UNIPOLE model to the Hero.
-
-Do not change content unless explicitly requested.
-
-Do not change business logic.
-
-Do not change section IDs or navigation anchors.
-
-Do not change inventory data.
-
-Do not change campaign-plan behaviour.
-
-Do not run Git commands.
-
-Do not rename project folders.
-
-Do not claim a file was changed unless it was actually changed.
-
-Do not claim validation passed unless the command was actually run.
-
-Do not fix unrelated pre-existing warnings or errors without reporting them first.
-
-Validation commands
-
-Run from the active project:
-
-cd "D:\Unippole_Single_page_web"
-
-Then run:
+After placing the latest files in the project, run:
 
 npm run lint
 npm run build
 
-Fix only errors caused by the Hero Silk implementation.
+The final build was not independently rerun in this chat after the latest carousel drag update, so lint and production build verification are still required in the local project.
 
-For local preview:
+11. Current Expected Result
 
-npm run dev
+The website should now provide:
 
-Open the exact local URL printed by Next.js.
+Animated Hero with smooth parallax.
 
-Confirm the browser no longer requests the missing Hero image-layer files.
+Existing About layout with sticky scroll-controlled content.
 
-The following console warning is not the cause of the broken Hero and does not need unrelated refactoring during this task:
+Lightweight GSAP line animation.
 
-THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+Centred, shorter About image.
 
-Report it as a pre-existing warning if it remains.
+Grey active feature blocks without icons, hover or red line.
 
-Final validation checklist
+Proper mouse and touch dragging in the Why Choose carousel.
 
-Before reporting completion, confirm:
+Visible carousel arrow backgrounds.
 
-Correct project folder was used
+Removed Industries section.
 
-Only the active Hero background was changed
+Dynamic Inventory cards and improved modal behaviour.
 
-Silk component was copied or created only once
-
-Exact Silk settings were used
-
-Broken Hero asset references were removed
-
-No missing Hero image requests remain
-
-Existing Hero content is unchanged
-
-Existing Hero layout is unchanged
-
-Existing Hero buttons still work
-
-Header remains unchanged
-
-All other sections remain unchanged
-
-Section order remains unchanged
-
-No 3D assembly section was added
-
-No 3D UNIPOLE model was added to the Hero
-
-No files were copied from the backup except Silk.tsx, when needed
-
-No horizontal overflow exists
-
-Mobile Hero remains usable
-
-TypeScript passes
-
-Build passes
-
-Lint result is reported honestly
-
-Expected completion report
-
-Report only:
-
-Files inspected
-
-Files copied
-
-Files modified
-
-Active Hero component identified
-
-Missing Hero image references removed
-
-Silk settings used
-
-What was intentionally not changed
-
-Confirmation that no 3D assembly/model work was added
-
-Lint result
-
-Build result
-
-Remaining pre-existing warnings or limitations
-
-Do not provide a vague completion message.
-
-Do not claim success without actual command results.
+Interactive procedural 3D CTA.
