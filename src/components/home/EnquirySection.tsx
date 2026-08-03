@@ -1,111 +1,507 @@
 "use client";
 
 import { useState } from "react";
-import { BrandButton } from "@/components/ui/BrandButton";
-import { siteConfig, buildWhatsAppUrl } from "@/config/site";
-import { useCampaignPlan } from "@/context/CampaignPlanContext";
-import { MessageCircle, Mail, Phone } from "lucide-react";
+
+import {
+  Mail,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
+
+import {
+  buildWhatsAppUrl,
+  siteConfig,
+} from "@/config/site";
 
 interface FormState {
-  name: string; company: string; email: string; phone: string; city: string;
-  requirement: string; startDate: string; duration: string; message: string; consent: boolean;
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  location: string;
+  unipoleType: string;
+  message: string;
+  consent: boolean;
 }
 
-const empty: FormState = {
-  name: "", company: "", email: "", phone: "", city: "", requirement: "",
-  startDate: "", duration: "", message: "", consent: false,
+const emptyForm: FormState = {
+  name: "",
+  company: "",
+  email: "",
+  phone: "",
+  location: "",
+  unipoleType: "",
+  message: "",
+  consent: false,
 };
 
-export function EnquirySection() {
-  const [form, setForm] = useState<FormState>(empty);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const { items, resolve } = useCampaignPlan();
+type TextFieldKey = Exclude<
+  keyof FormState,
+  "consent" | "unipoleType"
+>;
 
-  const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((s) => ({ ...s, [k]: v }));
+type FieldProps = {
+  id: TextFieldKey;
+  label: string;
+  type?: "text" | "email" | "tel";
+  value: string;
+  placeholder?: string;
+  required?: boolean;
+  error?: string;
+  onChange: (value: string) => void;
+};
+
+function UnderlineField({
+  id,
+  label,
+  type = "text",
+  value,
+  placeholder,
+  required = false,
+  error,
+  onChange,
+}: FieldProps) {
+  return (
+    <label
+      htmlFor={id}
+      className="block"
+    >
+      <span className="block text-[12px] font-medium tracking-[-0.01em] text-white/78 sm:text-[13px]">
+        {label}
+        {required ? "*" : ""}
+      </span>
+
+      <input
+        id={id}
+        name={id}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className={[
+          "mt-3 h-11 w-full border-0 border-b bg-transparent px-0",
+          "text-[15px] text-white outline-none transition-colors duration-300",
+          "placeholder:text-white/28",
+          "focus:ring-0",
+          error
+            ? "border-[#e62c36]"
+            : "border-white/24 focus:border-white/80",
+        ].join(" ")}
+      />
+
+      <span className="mt-1.5 block min-h-4 text-[11px] text-[#ff7078]">
+        {error ?? ""}
+      </span>
+    </label>
+  );
+}
+
+export function EnquirySection() {
+  const [form, setForm] =
+    useState<FormState>(emptyForm);
+
+  const [errors, setErrors] =
+    useState<
+      Partial<
+        Record<keyof FormState, string>
+      >
+    >({});
+
+  const update = <
+    Key extends keyof FormState,
+  >(
+    key: Key,
+    value: FormState[Key],
+  ) => {
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+
+    setErrors((current) => {
+      if (!current[key]) {
+        return current;
+      }
+
+      const next = {
+        ...current,
+      };
+
+      delete next[key];
+
+      return next;
+    });
+  };
 
   const validate = () => {
-    const e: typeof errors = {};
-    if (!form.name.trim()) e.name = "Please enter your name";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Enter a valid email";
-    if (!/^[+\d\s\-()]{7,}$/.test(form.phone)) e.phone = "Enter a valid phone";
-    if (!form.city.trim()) e.city = "Enter city";
-    if (!form.requirement.trim()) e.requirement = "Tell us your requirement";
-    if (!form.consent) e.consent = "Consent is required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const nextErrors: Partial<
+      Record<keyof FormState, string>
+    > = {};
+
+    if (!form.name.trim()) {
+      nextErrors.name =
+        "Please enter your name";
+    }
+
+    if (
+      !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(
+        form.email,
+      )
+    ) {
+      nextErrors.email =
+        "Enter a valid email address";
+    }
+
+    if (
+      !/^[+\d\s\-()]{7,}$/.test(
+        form.phone,
+      )
+    ) {
+      nextErrors.phone =
+        "Enter a valid phone number";
+    }
+
+    if (!form.location.trim()) {
+      nextErrors.location =
+        "Please enter the project location";
+    }
+
+    if (!form.unipoleType.trim()) {
+      nextErrors.unipoleType =
+        "Please select a unipole type";
+    }
+
+    if (!form.consent) {
+      nextErrors.consent =
+        "Consent is required";
+    }
+
+    setErrors(nextErrors);
+
+    return (
+      Object.keys(nextErrors).length ===
+      0
+    );
   };
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-    const plan = items.map((i) => resolve(i.siteId)).filter(Boolean)
-      .map((u) => `• ${u!.mediaCode} — ${u!.title} (${u!.city})`).join("\n");
-    const msg = [
-      `New Campaign Enquiry — ADINN UNIPOLE`,
+  const onSubmit = (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!validate()) {
+      return;
+    }
+
+    const message = [
+      "New Unipole Project Enquiry — ADINN UNIPOLE",
       `Name: ${form.name}`,
-      form.company && `Company: ${form.company}`,
+      form.company &&
+        `Company / Business: ${form.company}`,
       `Email: ${form.email}`,
       `Phone: ${form.phone}`,
-      `City: ${form.city}`,
-      `Requirement: ${form.requirement}`,
-      form.startDate && `Start Date: ${form.startDate}`,
-      form.duration && `Duration: ${form.duration}`,
-      plan && `\nSelected Locations:\n${plan}`,
-      form.message && `\nMessage: ${form.message}`,
-    ].filter(Boolean).join("\n");
-    window.open(buildWhatsAppUrl(msg), "_blank");
+      `Project Location: ${form.location}`,
+      `Unipole Type: ${form.unipoleType}`,
+      form.message &&
+        `\nSite / Project Details:\n${form.message}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    window.open(
+      buildWhatsAppUrl(message),
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
-  const err = (k: keyof FormState) => errors[k] && <span className="mt-1 block text-xs text-adinn-red">{errors[k]}</span>;
-  const inp = "w-full h-11 rounded-md border border-adinn-border bg-white px-3 text-sm text-adinn-ink focus:outline-none focus:ring-2 focus:ring-adinn-ink/20";
-  const lab = "block text-xs uppercase tracking-widest text-adinn-muted mb-1.5";
-
   return (
-    <section id="contact" className="py-20 md:py-28 bg-white">
-      <div className="container-x grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
-        <div>
-          <span className="text-xs uppercase tracking-[0.25em] text-adinn-red font-medium">Enquiry</span>
-          <h2 className="mt-3 text-h2 text-adinn-ink">
-            Request a campaign proposal.
+    <section
+      id="contact"
+      className="relative isolate overflow-hidden bg-[#111111] py-20 text-white md:py-24 lg:py-28"
+      aria-labelledby="enquiry-title"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(circle at 25% 32%, rgba(255,255,255,0.045), transparent 34%), radial-gradient(circle at 78% 68%, rgba(255,255,255,0.03), transparent 38%), linear-gradient(120deg, #151515 0%, #101010 46%, #181818 100%)",
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.45'/%3E%3C/svg%3E\")",
+        }}
+      />
+
+      <div className="container-x">
+        <div className="border-t border-white/16 pt-6 md:pt-8">
+          <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-white/50">
+            Build with ADINN
+          </span>
+
+          <h2
+            id="enquiry-title"
+            className="mt-4 max-w-[1450px] text-[clamp(3.1rem,7.6vw,8.5rem)] font-semibold uppercase leading-[0.86] tracking-[-0.06em] text-[#f1f0ea]"
+          >
+            Build your landmark
           </h2>
-          <p className="mt-4 text-adinn-ink-2 max-w-md leading-relaxed">
-            Share your requirement and shortlisted sites. Our team will get back with a tailored
-            proposal, pricing and site visit options.
-          </p>
-          <div className="mt-8 space-y-3 text-sm">
-            <a href={`tel:${siteConfig.phone}`} className="flex items-center gap-3 text-adinn-ink hover:text-adinn-red"><Phone size={16} strokeWidth={1.75} />{siteConfig.phone}</a>
-            <a href={`mailto:${siteConfig.email}`} className="flex items-center gap-3 text-adinn-ink hover:text-adinn-red"><Mail size={16} strokeWidth={1.75} />{siteConfig.email}</a>
-            <a href={buildWhatsAppUrl("Hello ADINN, I would like to enquire about UNIPOLE advertising.")} target="_blank" rel="noreferrer"
-              className="flex items-center gap-3 text-adinn-ink hover:text-adinn-red"><MessageCircle size={16} strokeWidth={1.75} />WhatsApp us</a>
-          </div>
-          {items.length > 0 && (
-            <div className="mt-8 rounded-lg border border-adinn-border bg-adinn-warm p-4">
-              <div className="text-xs uppercase tracking-widest text-adinn-muted">Selected locations</div>
-              <div className="mt-1 text-sm font-medium text-adinn-ink">{items.length} site{items.length === 1 ? "" : "s"} in your campaign plan</div>
-            </div>
-          )}
         </div>
-        <form onSubmit={onSubmit} noValidate className="grid gap-4 sm:grid-cols-2">
-          <label><span className={lab}>Full Name*</span><input className={inp} value={form.name} onChange={(e) => update("name", e.target.value)} />{err("name")}</label>
-          <label><span className={lab}>Company</span><input className={inp} value={form.company} onChange={(e) => update("company", e.target.value)} /></label>
-          <label><span className={lab}>Email*</span><input type="email" className={inp} value={form.email} onChange={(e) => update("email", e.target.value)} />{err("email")}</label>
-          <label><span className={lab}>Phone*</span><input type="tel" className={inp} value={form.phone} onChange={(e) => update("phone", e.target.value)} />{err("phone")}</label>
-          <label><span className={lab}>City*</span><input className={inp} value={form.city} onChange={(e) => update("city", e.target.value)} />{err("city")}</label>
-          <label><span className={lab}>Duration</span><input className={inp} placeholder="e.g. 30 days" value={form.duration} onChange={(e) => update("duration", e.target.value)} /></label>
-          <label><span className={lab}>Campaign Requirement*</span><input className={inp} placeholder="Brand, category, objective" value={form.requirement} onChange={(e) => update("requirement", e.target.value)} />{err("requirement")}</label>
-          <label><span className={lab}>Preferred Start Date</span><input type="date" className={inp} value={form.startDate} onChange={(e) => update("startDate", e.target.value)} /></label>
-          <label className="sm:col-span-2"><span className={lab}>Message</span>
-            <textarea className={`${inp} h-28 py-2.5 resize-none`} value={form.message} onChange={(e) => update("message", e.target.value)} />
-          </label>
-          <label className="sm:col-span-2 flex items-start gap-3 text-sm text-adinn-ink-2">
-            <input type="checkbox" className="mt-1" checked={form.consent} onChange={(e) => update("consent", e.target.checked)} />
-            <span>I agree to be contacted by ADINN about my enquiry. {err("consent")}</span>
-          </label>
-          <div className="sm:col-span-2 flex flex-wrap items-center gap-3 pt-2">
-            <BrandButton type="submit" size="lg">Request Campaign Proposal</BrandButton>
-            <span className="text-xs text-adinn-muted">Opens WhatsApp with your details prefilled.</span>
+
+        <div className="mt-14 grid gap-14 lg:mt-18 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20 xl:gap-28">
+          <div>
+            <p className="max-w-[430px] text-[clamp(1.65rem,2.7vw,3rem)] leading-[1.12] tracking-[-0.04em] text-[#f1f0ea]">
+              <span className="mr-2 inline-block h-px w-7 translate-y-[-0.32em] bg-white/80 sm:w-9" />
+              Planning a new unipole for your
+              property or business? Share your
+              site details and our team will guide
+              you from survey to installation.
+            </p>
+
+            <p className="mt-7 max-w-[450px] text-sm leading-7 text-white/55 sm:text-[15px]">
+              We support site assessment, soil
+              analysis, structural planning,
+              fabrication, lighting and complete
+              on-site installation.
+            </p>
+
+            <div className="mt-10 space-y-4 text-sm text-white/70 sm:text-base">
+              <a
+                href={`tel:${siteConfig.phone}`}
+                className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+              >
+                <Phone
+                  size={17}
+                  strokeWidth={1.6}
+                />
+
+                {siteConfig.phone}
+              </a>
+
+              <a
+                href={`mailto:${siteConfig.email}`}
+                className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+              >
+                <Mail
+                  size={17}
+                  strokeWidth={1.6}
+                />
+
+                {siteConfig.email}
+              </a>
+
+              <a
+                href={buildWhatsAppUrl(
+                  "Hello ADINN, I would like to discuss a new unipole project.",
+                )}
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+              >
+                <MessageCircle
+                  size={17}
+                  strokeWidth={1.6}
+                />
+
+                WhatsApp us
+              </a>
+            </div>
           </div>
-        </form>
+
+          <form
+            onSubmit={onSubmit}
+            noValidate
+            className="grid gap-x-5 gap-y-3 sm:grid-cols-2"
+          >
+            <UnderlineField
+              id="name"
+              label="Full name"
+              required
+              value={form.name}
+              error={errors.name}
+              onChange={(value) =>
+                update("name", value)
+              }
+            />
+
+            <UnderlineField
+              id="company"
+              label="Company / Business name"
+              value={form.company}
+              onChange={(value) =>
+                update("company", value)
+              }
+            />
+
+            <UnderlineField
+              id="email"
+              label="Email"
+              type="email"
+              required
+              value={form.email}
+              error={errors.email}
+              onChange={(value) =>
+                update("email", value)
+              }
+            />
+
+            <UnderlineField
+              id="phone"
+              label="Phone number"
+              type="tel"
+              required
+              value={form.phone}
+              error={errors.phone}
+              onChange={(value) =>
+                update("phone", value)
+              }
+            />
+
+            <UnderlineField
+              id="location"
+              label="Project location"
+              required
+              value={form.location}
+              placeholder="City, area or site address"
+              error={errors.location}
+              onChange={(value) =>
+                update("location", value)
+              }
+            />
+
+            <label
+              htmlFor="unipoleType"
+              className="block"
+            >
+              <span className="block text-[12px] font-medium tracking-[-0.01em] text-white/78 sm:text-[13px]">
+                Type of unipole*
+              </span>
+
+              <select
+                id="unipoleType"
+                name="unipoleType"
+                value={form.unipoleType}
+                onChange={(event) =>
+                  update(
+                    "unipoleType",
+                    event.target.value,
+                  )
+                }
+                className={[
+                  "mt-3 h-11 w-full border-0 border-b bg-transparent px-0",
+                  "text-[15px] outline-none transition-colors duration-300",
+                  "focus:ring-0",
+                  errors.unipoleType
+                    ? "border-[#e62c36]"
+                    : "border-white/24 focus:border-white/80",
+                  form.unipoleType
+                    ? "text-white"
+                    : "text-white/35",
+                ].join(" ")}
+              >
+                <option
+                  value=""
+                  className="bg-[#151515] text-white"
+                >
+                  Select type
+                </option>
+
+                <option
+                  value="Standard Unipole"
+                  className="bg-[#151515] text-white"
+                >
+                  Standard Unipole
+                </option>
+
+                <option
+                  value="LED Unipole"
+                  className="bg-[#151515] text-white"
+                >
+                  LED Unipole
+                </option>
+
+                <option
+                  value="Special Signage"
+                  className="bg-[#151515] text-white"
+                >
+                  Special Signage
+                </option>
+              </select>
+
+              <span className="mt-1.5 block min-h-4 text-[11px] text-[#ff7078]">
+                {errors.unipoleType ?? ""}
+              </span>
+            </label>
+
+            <label
+              htmlFor="message"
+              className="block sm:col-span-2"
+            >
+              <span className="block text-[12px] font-medium tracking-[-0.01em] text-white/78 sm:text-[13px]">
+                Site / Project details
+              </span>
+
+              <textarea
+                id="message"
+                name="message"
+                value={form.message}
+                placeholder="Tell us about the site, available space, preferred size, lighting requirement or any other details."
+                onChange={(event) =>
+                  update(
+                    "message",
+                    event.target.value,
+                  )
+                }
+                className="mt-3 min-h-[130px] w-full resize-none border-0 border-b border-white/24 bg-transparent px-0 py-3 text-[15px] text-white outline-none transition-colors duration-300 placeholder:text-white/28 focus:border-white/80 focus:ring-0"
+              />
+            </label>
+
+            <label className="mt-4 flex items-start gap-3 text-[12px] leading-5 text-white/64 sm:col-span-2 sm:text-[13px]">
+              <input
+                type="checkbox"
+                checked={form.consent}
+                onChange={(event) =>
+                  update(
+                    "consent",
+                    event.target.checked,
+                  )
+                }
+                className="mt-1 h-4 w-4 shrink-0 appearance-none border border-white/70 bg-transparent checked:border-white checked:bg-white"
+              />
+
+              <span>
+                I agree to be contacted by ADINN
+                regarding this unipole project
+                enquiry.
+
+                {errors.consent && (
+                  <span className="mt-1 block text-[11px] text-[#ff7078]">
+                    {errors.consent}
+                  </span>
+                )}
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              className="mt-5 inline-flex h-14 items-center justify-center border border-white/70 px-8 text-sm font-medium text-white transition-all duration-300 hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:col-span-2 sm:max-w-[430px]"
+            >
+              Request Site Assessment
+            </button>
+
+            <p className="text-[11px] leading-5 text-white/40 sm:col-span-2">
+              Opens WhatsApp with your project
+              details prefilled.
+            </p>
+          </form>
+        </div>
       </div>
     </section>
   );

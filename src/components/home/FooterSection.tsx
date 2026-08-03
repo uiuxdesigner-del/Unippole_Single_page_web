@@ -28,17 +28,8 @@ type FooterLocation = {
   address: string;
 };
 
-const clamp = (
-  value: number,
-  minimum: number,
-  maximum: number,
-) => Math.min(maximum, Math.max(minimum, value));
-
-const lerp = (
-  from: number,
-  to: number,
-  amount: number,
-) => from + (to - from) * amount;
+const ROBOTO_FLEX_URL =
+  "https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&display=swap";
 
 const LOCATIONS: FooterLocation[] = [
   {
@@ -63,6 +54,18 @@ const LOCATIONS: FooterLocation[] = [
   },
 ];
 
+const clamp = (
+  value: number,
+  minimum: number,
+  maximum: number,
+) => Math.min(maximum, Math.max(minimum, value));
+
+const lerp = (
+  from: number,
+  to: number,
+  amount: number,
+) => from + (to - from) * amount;
+
 function TextPressure({
   text = "ADINN UNIPOLE",
 }: {
@@ -71,11 +74,11 @@ function TextPressure({
   const containerRef =
     useRef<HTMLDivElement | null>(null);
 
+  const titleRef =
+    useRef<HTMLDivElement | null>(null);
+
   const characterRefs =
     useRef<Array<HTMLSpanElement | null>>([]);
-
-  const characterCentresRef =
-    useRef<Point[]>([]);
 
   const targetPointerRef = useRef<Point>({
     x: 0,
@@ -93,105 +96,18 @@ function TextPressure({
   const isVisibleRef = useRef(false);
   const isPointerInsideRef = useRef(false);
   const reducedMotionRef = useRef(false);
+  const isPageVisibleRef = useRef(true);
 
   const [fontSize, setFontSize] =
-    useState(34);
+    useState(44);
+
+  const [scaleY, setScaleY] =
+    useState(1);
 
   const characters = useMemo(
     () => Array.from(text),
     [text],
   );
-
-  const setPointerToCentre =
-    useCallback(() => {
-      const container =
-        containerRef.current;
-
-      if (!container) return;
-
-      targetPointerRef.current = {
-        x: container.clientWidth / 2,
-        y: container.clientHeight / 2,
-      };
-    }, []);
-
-  const measureCharacters =
-    useCallback(() => {
-      characterCentresRef.current =
-        characterRefs.current.map(
-          (character) => {
-            if (!character) {
-              return {
-                x: 0,
-                y: 0,
-              };
-            }
-
-            return {
-              x:
-                character.offsetLeft +
-                character.offsetWidth / 2,
-              y:
-                character.offsetTop +
-                character.offsetHeight / 2,
-            };
-          },
-        );
-    }, []);
-
-  const updateSize = useCallback(() => {
-    const container =
-      containerRef.current;
-
-    if (!container) return;
-
-    const availableWidth = Math.max(
-      container.clientWidth -
-        Math.max(
-          16,
-          container.clientWidth * 0.018,
-        ),
-      1,
-    );
-
-    const visibleUnits =
-      characters.reduce(
-        (total, character) =>
-          total +
-          (character === " " ? 0.42 : 1),
-        0,
-      );
-
-    const nextFontSize = clamp(
-      availableWidth /
-        Math.max(
-          visibleUnits * 0.59,
-          1,
-        ),
-      30,
-      245,
-    );
-
-    setFontSize(nextFontSize);
-
-    window.requestAnimationFrame(() => {
-      measureCharacters();
-      setPointerToCentre();
-
-      if (
-        smoothPointerRef.current.x === 0 &&
-        smoothPointerRef.current.y === 0
-      ) {
-        smoothPointerRef.current = {
-          ...targetPointerRef.current,
-        };
-      }
-    });
-  }, [
-    characters,
-    measureCharacters,
-    setPointerToCentre,
-  ]);
 
   const stopAnimation =
     useCallback(() => {
@@ -206,30 +122,123 @@ function TextPressure({
       }
     }, []);
 
+  const setPointerToCentre =
+    useCallback(() => {
+      const container =
+        containerRef.current;
+
+      if (!container) return;
+
+      targetPointerRef.current = {
+        x: container.clientWidth / 2,
+        y: container.clientHeight / 2,
+      };
+    }, []);
+
   const resetCharacters =
     useCallback(() => {
       characterRefs.current.forEach(
         (character) => {
           if (!character) return;
 
-          character.style.transform =
-            "scaleX(1)";
+          character.style.fontVariationSettings =
+            "'wght' 800, 'wdth' 100";
 
-          character.style.fontWeight =
-            "800";
+          character.style.opacity = "1";
         },
       );
     }, []);
+
+  const updateSize = useCallback(() => {
+    const container =
+      containerRef.current;
+
+    const title = titleRef.current;
+
+    if (!container || !title) return;
+
+    const containerWidth =
+      container.clientWidth;
+
+    const containerHeight =
+      container.clientHeight;
+
+    const visibleUnits =
+      characters.reduce(
+        (total, character) =>
+          total +
+          (character === " " ? 0.5 : 1),
+        0,
+      );
+
+    /*
+     * This follows the same sizing idea as
+     * React Bits, but keeps the full title
+     * safely inside the footer.
+     */
+    const nextFontSize = clamp(
+      containerWidth /
+        Math.max(
+          visibleUnits * 0.52,
+          1,
+        ),
+      34,
+      260,
+    );
+
+    setFontSize(nextFontSize);
+    setScaleY(1);
+
+    window.requestAnimationFrame(() => {
+      const currentTitle =
+        titleRef.current;
+
+      if (!currentTitle) return;
+
+      const textRect =
+        currentTitle.getBoundingClientRect();
+
+      if (textRect.height > 0) {
+        const verticalScale = clamp(
+          containerHeight /
+            textRect.height,
+          0.82,
+          1.18,
+        );
+
+        setScaleY(verticalScale);
+      }
+
+      setPointerToCentre();
+
+      if (
+        smoothPointerRef.current.x === 0 &&
+        smoothPointerRef.current.y === 0
+      ) {
+        smoothPointerRef.current = {
+          ...targetPointerRef.current,
+        };
+      }
+    });
+  }, [
+    characters,
+    setPointerToCentre,
+  ]);
 
   const animate = useCallback(() => {
     animationFrameRef.current = null;
 
     if (
       !isVisibleRef.current ||
+      !isPageVisibleRef.current ||
       reducedMotionRef.current
     ) {
       return;
     }
+
+    const title = titleRef.current;
+
+    if (!title) return;
 
     const smooth =
       smoothPointerRef.current;
@@ -240,55 +249,57 @@ function TextPressure({
     smooth.x = lerp(
       smooth.x,
       target.x,
-      0.17,
+      0.13,
     );
 
     smooth.y = lerp(
       smooth.y,
       target.y,
-      0.17,
+      0.13,
     );
 
-    let remainingDistance = 0;
+    const titleRect =
+      title.getBoundingClientRect();
+
+    const maxDistance =
+      Math.max(
+        titleRect.width * 0.28,
+        170,
+      );
 
     characterRefs.current.forEach(
-      (character, index) => {
+      (character) => {
         if (!character) return;
 
-        const centre =
-          characterCentresRef.current[
-            index
-          ];
+        const characterRect =
+          character.getBoundingClientRect();
 
-        if (!centre) return;
+        const centreX =
+          characterRect.left -
+          titleRect.left +
+          characterRect.width / 2;
+
+        const centreY =
+          characterRect.top -
+          titleRect.top +
+          characterRect.height / 2;
 
         const deltaX =
-          smooth.x - centre.x;
+          smooth.x - centreX;
 
         const deltaY =
-          smooth.y - centre.y;
+          smooth.y - centreY;
 
         const distance = Math.sqrt(
           deltaX * deltaX +
             deltaY * deltaY,
         );
 
-        const responseRadius = Math.max(
-          170,
-          Math.min(
-            330,
-            (
-              containerRef.current
-                ?.clientWidth ?? 1200
-            ) * 0.22,
-          ),
-        );
-
         const influence =
           1 -
           clamp(
             distance /
-              responseRadius,
+              maxDistance,
             0,
             1,
           );
@@ -298,43 +309,45 @@ function TextPressure({
           influence *
           (3 - 2 * influence);
 
-        const widthScale = lerp(
-          0.9,
-          1.24,
-          easedInfluence,
-        );
-
-        const weight = Math.round(
+        /*
+         * Real React Bits-style stretch:
+         * use the variable font's native
+         * width and weight axes.
+         */
+        const widthAxis = Math.round(
           lerp(
-            720,
-            950,
+            72,
+            126,
             easedInfluence,
           ),
         );
 
-        character.style.transform =
-          `scaleX(${widthScale.toFixed(
-            3,
-          )})`;
-
-        character.style.fontWeight =
-          String(weight);
-
-        remainingDistance = Math.max(
-          remainingDistance,
-          Math.abs(
-            target.x - smooth.x,
-          ),
-          Math.abs(
-            target.y - smooth.y,
+        const weightAxis = Math.round(
+          lerp(
+            620,
+            900,
+            easedInfluence,
           ),
         );
+
+        character.style.fontVariationSettings =
+          `'wght' ${weightAxis}, 'wdth' ${widthAxis}`;
       },
     );
 
+    const remainingDistance =
+      Math.max(
+        Math.abs(
+          target.x - smooth.x,
+        ),
+        Math.abs(
+          target.y - smooth.y,
+        ),
+      );
+
     if (
       isPointerInsideRef.current ||
-      remainingDistance > 0.35
+      remainingDistance > 0.25
     ) {
       animationFrameRef.current =
         window.requestAnimationFrame(
@@ -348,6 +361,7 @@ function TextPressure({
       if (
         animationFrameRef.current !== null ||
         !isVisibleRef.current ||
+        !isPageVisibleRef.current ||
         reducedMotionRef.current
       ) {
         return;
@@ -362,13 +376,12 @@ function TextPressure({
   const updatePointer = (
     event: ReactPointerEvent<HTMLDivElement>,
   ) => {
-    const container =
-      containerRef.current;
+    const title = titleRef.current;
 
-    if (!container) return;
+    if (!title) return;
 
     const bounds =
-      container.getBoundingClientRect();
+      title.getBoundingClientRect();
 
     targetPointerRef.current = {
       x: event.clientX - bounds.left,
@@ -398,6 +411,7 @@ function TextPressure({
         resetCharacters();
       } else {
         updateSize();
+        startAnimation();
       }
     };
 
@@ -409,7 +423,9 @@ function TextPressure({
     );
 
     const resizeObserver =
-      new ResizeObserver(updateSize);
+      new ResizeObserver(() => {
+        updateSize();
+      });
 
     resizeObserver.observe(container);
 
@@ -421,6 +437,7 @@ function TextPressure({
 
           if (entry.isIntersecting) {
             updateSize();
+            startAnimation();
           } else {
             stopAnimation();
           }
@@ -435,9 +452,26 @@ function TextPressure({
       container,
     );
 
-    document.fonts?.ready.then(
-      updateSize,
+    const handleVisibilityChange = () => {
+      isPageVisibleRef.current =
+        !document.hidden;
+
+      if (document.hidden) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    };
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
     );
+
+    document.fonts?.ready.then(() => {
+      updateSize();
+      startAnimation();
+    });
 
     updateSize();
 
@@ -447,12 +481,18 @@ function TextPressure({
         handleReducedMotion,
       );
 
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
+
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       stopAnimation();
     };
   }, [
     resetCharacters,
+    startAnimation,
     stopAnimation,
     updateSize,
   ]);
@@ -478,15 +518,24 @@ function TextPressure({
         startAnimation();
       }}
     >
+      <style>{`
+        @import url('${ROBOTO_FLEX_URL}');
+      `}</style>
+
       <div
-        className="absolute inset-0 flex items-center justify-between whitespace-nowrap px-[1%] uppercase text-[#080808]"
+        ref={titleRef}
+        className="absolute inset-0 flex items-center justify-between whitespace-nowrap px-[0.8%] uppercase text-[#080808]"
         style={{
           fontFamily:
-            "Arial Black, Arial, sans-serif",
+            "'Roboto Flex', Arial, sans-serif",
           fontSize: `${fontSize}px`,
-          fontWeight: 800,
-          lineHeight: 0.8,
-          letterSpacing: "-0.065em",
+          lineHeight: 0.78,
+          letterSpacing: "-0.055em",
+          transform: `scaleY(${scaleY})`,
+          transformOrigin:
+            "center center",
+          fontVariationSettings:
+            "'wght' 800, 'wdth' 100",
         }}
       >
         {characters.map(
@@ -499,10 +548,10 @@ function TextPressure({
                 ] = element;
               }}
               aria-hidden="true"
-              className="inline-block transform-gpu will-change-transform"
+              className="inline-block"
               style={{
-                transformOrigin:
-                  "center center",
+                fontVariationSettings:
+                  "'wght' 800, 'wdth' 100",
               }}
             >
               {character === " "
@@ -521,9 +570,9 @@ export function FooterSection() {
 
   return (
     <footer className="bg-white text-neutral-950">
-      <div className="mx-auto max-w-[1720px] px-5 pb-5 pt-8 sm:px-8 md:pt-10 lg:px-12 xl:px-14">
-        <div className="border-t border-neutral-300 pt-10 md:pt-14">
-          <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20 xl:gap-28">
+      <div className="mx-auto max-w-[1720px] px-5 pb-4 pt-5 sm:px-8 md:pt-6 lg:px-12 xl:px-14">
+        <div className="border-t border-neutral-300 pt-7 md:pt-9">
+          <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 xl:gap-20">
             <div>
               <Image
                 src="/AdinnLogo.svg"
@@ -533,13 +582,13 @@ export function FooterSection() {
                 className="h-auto w-[220px] object-contain sm:w-[250px] lg:w-[270px]"
               />
 
-              <p className="mt-6 max-w-[390px] text-[16px] leading-[1.5] text-neutral-800 sm:text-[18px] lg:text-[20px]">
+              <p className="mt-4 max-w-[390px] text-[16px] leading-[1.5] text-neutral-800 sm:text-[18px] lg:text-[20px]">
                 We help brands stand taller with
                 powerful outdoor advertising
                 solutions.
               </p>
 
-              <div className="mt-9">
+              <div className="mt-6">
                 <h2 className="text-[18px] font-semibold sm:text-[20px]">
                   Contact
                 </h2>
@@ -568,7 +617,7 @@ export function FooterSection() {
                 </div>
               </div>
 
-              <div className="mt-8 flex items-center gap-7">
+              <div className="mt-5 flex items-center gap-7">
                 <a
                   href="#"
                   aria-label="Instagram"
@@ -620,13 +669,13 @@ export function FooterSection() {
                 Locations
               </h2>
 
-              <div className="mt-5 grid md:grid-cols-2">
+              <div className="mt-3 grid md:grid-cols-2">
                 {LOCATIONS.map(
                   (location, index) => (
                     <article
                       key={location.city}
                       className={[
-                        "min-h-[150px] py-7",
+                        "min-h-[118px] py-5",
                         index % 2 === 0
                           ? "md:border-r md:pr-12 xl:pr-14"
                           : "md:pl-12 xl:pl-14",
@@ -649,11 +698,11 @@ export function FooterSection() {
             </div>
           </div>
 
-          <div className="mt-10 h-[94px] sm:h-[140px] md:h-[185px] lg:h-[230px] xl:h-[280px] 2xl:h-[310px]">
+          <div className="mt-2 h-[86px] sm:h-[112px] md:h-[142px] lg:h-[172px] xl:h-[202px] 2xl:h-[222px]">
             <TextPressure text="ADINN UNIPOLE" />
           </div>
 
-          <div className="mt-4 flex flex-col gap-5 border-t border-neutral-300 pt-6 text-sm text-neutral-800 sm:text-base lg:flex-row lg:items-center lg:justify-between">
+          <div className="mt-1 flex flex-col gap-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800 sm:text-base lg:flex-row lg:items-center lg:justify-between">
             <p>
               © {year} Adinn Advertising
               Services Ltd.
