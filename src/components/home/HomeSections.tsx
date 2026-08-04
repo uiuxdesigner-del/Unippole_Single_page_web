@@ -1021,7 +1021,7 @@ export function WhyChooseSection() {
 
           <h2
             id="why-unipole-title"
-            className="mt-2 text-[clamp(2.35rem,3.8vw,3.75rem)] font-regular leading-[1] tracking-[-0.045em] text-neutral-950"
+            className="mt-2 text-[clamp(4.35rem,3.8vw,3.75rem)] font-regular leading-[1] tracking-[-0.045em] text-neutral-950"
           >
             UNIPOLE
           </h2>
@@ -1272,76 +1272,7 @@ export function GroundToSkySection() {
   );
 }
 
-const growthItems = [
-  {
-    title: "Strategic Location",
-    description: "Sites selected where relevant audiences naturally travel.",
-  },
-  {
-    title: "Campaign Visibility",
-    description:
-      "Large-format communication designed to remain visible during daily travel.",
-  },
-  {
-    title: "Repeated Exposure",
-    description:
-      "Consistent roadside presence helps build familiarity over time.",
-  },
-  {
-    title: "Brand Recall",
-    description:
-      "Repeated visibility supports stronger recognition across campaign periods.",
-  },
-  {
-    title: "Customer Consideration",
-    description:
-      "Familiar brands are more likely to enter the audience consideration set.",
-  },
-  {
-    title: "Business Enquiry",
-    description:
-      "Interested audiences can respond through the brand's available channels.",
-  },
-];
 
-export function BusinessGrowthSection() {
-  return (
-    <section className="bg-adinn-warm py-20 md:py-28">
-      <div className="container-x">
-        <div className="max-w-2xl">
-          <span className="text-xs font-medium uppercase tracking-[0.25em] text-adinn-red">
-            Business Growth Journey
-          </span>
-
-          <h2 className="mt-3 text-h2 text-adinn-ink">
-            How outdoor presence supports growth.
-          </h2>
-        </div>
-
-        <div className="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
-          {growthItems.map((item, index) => (
-            <article
-              key={item.title}
-              className="border-t border-adinn-border pt-6"
-            >
-              <span className="text-xs tracking-widest text-adinn-muted">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-
-              <h3 className="mt-2 text-lg font-semibold text-adinn-ink">
-                {item.title}
-              </h3>
-
-              <p className="mt-2 text-sm leading-relaxed text-adinn-ink-2">
-                {item.description}
-              </p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export function IndustriesSection() {
   return null;

@@ -6,14 +6,13 @@ import { CampaignPlanProvider } from "@/context/CampaignPlanContext";
 import { useLenisSetup } from "@/hooks/useLenis";
 import { Header } from "@/components/layout/Header";
 import {
-  BusinessGrowthSection,
   FaqSection,
-  GroundToSkySection,
   HeroSection,
-  IndustriesSection,
   WhatIsUnipoleSection,
   WhyChooseSection,
 } from "@/components/home/HomeSections";
+
+import { GroundToSkySection } from "@/components/home/GroundToSkySection";
 import { InventorySection } from "@/components/home/InventorySection";
 import { DayNightCompare } from "@/components/home/DayNightCompare";
 import { EnquirySection } from "@/components/home/EnquirySection";
@@ -40,10 +39,7 @@ function WebsiteContent() {
         <WhyChooseSection />
         <InventorySection />
         <DayNightCompare />
-      
         <GroundToSkySection />
-        <IndustriesSection />
-        <BusinessGrowthSection />
         <FaqSection />
         <EnquirySection />
       </main>

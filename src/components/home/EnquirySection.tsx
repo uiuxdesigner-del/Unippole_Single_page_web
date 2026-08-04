@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 
 import {
   Mail,
@@ -66,7 +67,7 @@ function UnderlineField({
       htmlFor={id}
       className="block"
     >
-      <span className="block text-[12px] font-medium tracking-[-0.01em] text-white/78 sm:text-[13px]">
+      <span className="block text-xs font-medium tracking-tight text-white/75 sm:text-[13px]">
         {label}
         {required ? "*" : ""}
       </span>
@@ -81,17 +82,16 @@ function UnderlineField({
           onChange(event.target.value)
         }
         className={[
-          "mt-3 h-11 w-full border-0 border-b bg-transparent px-0",
-          "text-[15px] text-white outline-none transition-colors duration-300",
-          "placeholder:text-white/28",
-          "focus:ring-0",
+          "mt-2 h-11 w-full border-0 border-b bg-transparent px-0",
+          "text-sm text-white outline-none transition-colors duration-300 sm:text-[15px]",
+          "placeholder:text-white/30 focus:ring-0",
           error
-            ? "border-[#e62c36]"
-            : "border-white/24 focus:border-white/80",
+            ? "border-red-500"
+            : "border-white/25 focus:border-white/80",
         ].join(" ")}
       />
 
-      <span className="mt-1.5 block min-h-4 text-[11px] text-[#ff7078]">
+      <span className="mt-1 block min-h-4 text-[11px] text-red-400">
         {error ?? ""}
       </span>
     </label>
@@ -187,7 +187,7 @@ export function EnquirySection() {
   };
 
   const onSubmit = (
-    event: React.FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
@@ -220,287 +220,262 @@ export function EnquirySection() {
   return (
     <section
       id="contact"
-      className="relative isolate overflow-hidden bg-[#111111] py-20 text-white md:py-24 lg:py-28"
+      className="relative isolate overflow-hidden bg-gradient-to-br from-[#151515] via-[#101010] to-[#181818] py-16 text-white sm:py-20 lg:min-h-[760px] lg:py-20 xl:min-h-[820px] xl:py-24"
       aria-labelledby="enquiry-title"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(circle at 25% 32%, rgba(255,255,255,0.045), transparent 34%), radial-gradient(circle at 78% 68%, rgba(255,255,255,0.03), transparent 38%), linear-gradient(120deg, #151515 0%, #101010 46%, #181818 100%)",
-        }}
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.08]"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.45'/%3E%3C/svg%3E\")",
-        }}
-      />
-
       <div className="container-x">
-        <div className="border-t border-white/16 pt-6 md:pt-8">
-          <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-white/50">
-            Build with ADINN
-          </span>
+        <div className="border-t border-white/15 pt-8 lg:pt-10">
+          <div className="grid items-start gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20 xl:gap-28">
+            {/* Left content */}
+            <div className="max-w-[620px]">
+              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-white/50 sm:text-[11px]">
+                Build with ADINN
+              </span>
 
-          <h2
-            id="enquiry-title"
-            className="mt-4 max-w-[1450px] text-[clamp(3.1rem,7.6vw,8.5rem)] font-semibold uppercase leading-[0.86] tracking-[-0.06em] text-[#f1f0ea]"
-          >
-            Build your landmark
-          </h2>
-        </div>
-
-        <div className="mt-14 grid gap-14 lg:mt-18 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20 xl:gap-28">
-          <div>
-            <p className="max-w-[430px] text-[clamp(1.65rem,2.7vw,3rem)] leading-[1.12] tracking-[-0.04em] text-[#f1f0ea]">
-              <span className="mr-2 inline-block h-px w-7 translate-y-[-0.32em] bg-white/80 sm:w-9" />
-              Planning a new unipole for your
-              property or business? Share your
-              site details and our team will guide
-              you from survey to installation.
-            </p>
-
-            <p className="mt-7 max-w-[450px] text-sm leading-7 text-white/55 sm:text-[15px]">
-              We support site assessment, soil
-              analysis, structural planning,
-              fabrication, lighting and complete
-              on-site installation.
-            </p>
-
-            <div className="mt-10 space-y-4 text-sm text-white/70 sm:text-base">
-              <a
-                href={`tel:${siteConfig.phone}`}
-                className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+              <h2
+                id="enquiry-title"
+                className="mt-3 max-w-[620px] text-[clamp(3rem,5vw,6rem)] font-semibold uppercase leading-[0.88] tracking-[-0.055em] text-[#f1f0ea]"
               >
-                <Phone
-                  size={17}
-                  strokeWidth={1.6}
-                />
+                Build your landmark
+              </h2>
 
-                {siteConfig.phone}
-              </a>
+              <p className="mt-10 max-w-[430px] text-[clamp(1.35rem,1.8vw,1.9rem)] leading-[1.22] tracking-[-0.03em] text-[#f1f0ea] sm:mt-12">
+                Planning a new unipole? Share your
+                site details, and our team will guide
+                you from survey to installation.
+              </p>
 
-              <a
-                href={`mailto:${siteConfig.email}`}
-                className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
-              >
-                <Mail
-                  size={17}
-                  strokeWidth={1.6}
-                />
+              <div className="mt-10 space-y-4 text-sm text-white/70 sm:text-[15px]">
+                <a
+                  href={`tel:${siteConfig.phone}`}
+                  className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+                >
+                  <Phone
+                    size={17}
+                    strokeWidth={1.6}
+                  />
 
-                {siteConfig.email}
-              </a>
+                  {siteConfig.phone}
+                </a>
 
-              <a
-                href={buildWhatsAppUrl(
-                  "Hello ADINN, I would like to discuss a new unipole project.",
-                )}
-                target="_blank"
-                rel="noreferrer"
-                className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
-              >
-                <MessageCircle
-                  size={17}
-                  strokeWidth={1.6}
-                />
+                <a
+                  href={`mailto:${siteConfig.email}`}
+                  className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+                >
+                  <Mail
+                    size={17}
+                    strokeWidth={1.6}
+                  />
 
-                WhatsApp us
-              </a>
+                  {siteConfig.email}
+                </a>
+
+                <a
+                  href={buildWhatsAppUrl(
+                    "Hello ADINN, I would like to discuss a new unipole project.",
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
+                >
+                  <MessageCircle
+                    size={17}
+                    strokeWidth={1.6}
+                  />
+
+                  WhatsApp us
+                </a>
+              </div>
             </div>
-          </div>
 
-          <form
-            onSubmit={onSubmit}
-            noValidate
-            className="grid gap-x-5 gap-y-3 sm:grid-cols-2"
-          >
-            <UnderlineField
-              id="name"
-              label="Full name"
-              required
-              value={form.name}
-              error={errors.name}
-              onChange={(value) =>
-                update("name", value)
-              }
-            />
-
-            <UnderlineField
-              id="company"
-              label="Company / Business name"
-              value={form.company}
-              onChange={(value) =>
-                update("company", value)
-              }
-            />
-
-            <UnderlineField
-              id="email"
-              label="Email"
-              type="email"
-              required
-              value={form.email}
-              error={errors.email}
-              onChange={(value) =>
-                update("email", value)
-              }
-            />
-
-            <UnderlineField
-              id="phone"
-              label="Phone number"
-              type="tel"
-              required
-              value={form.phone}
-              error={errors.phone}
-              onChange={(value) =>
-                update("phone", value)
-              }
-            />
-
-            <UnderlineField
-              id="location"
-              label="Project location"
-              required
-              value={form.location}
-              placeholder="City, area or site address"
-              error={errors.location}
-              onChange={(value) =>
-                update("location", value)
-              }
-            />
-
-            <label
-              htmlFor="unipoleType"
-              className="block"
+            {/* Right form */}
+            <form
+              onSubmit={onSubmit}
+              noValidate
+              className="grid self-start gap-x-6 gap-y-5 sm:grid-cols-2 sm:gap-y-6 lg:pt-4 xl:gap-x-8 xl:gap-y-7"
             >
-              <span className="block text-[12px] font-medium tracking-[-0.01em] text-white/78 sm:text-[13px]">
-                Type of unipole*
-              </span>
-
-              <select
-                id="unipoleType"
-                name="unipoleType"
-                value={form.unipoleType}
-                onChange={(event) =>
-                  update(
-                    "unipoleType",
-                    event.target.value,
-                  )
+              <UnderlineField
+                id="name"
+                label="Full name"
+                required
+                value={form.name}
+                error={errors.name}
+                onChange={(value) =>
+                  update("name", value)
                 }
-                className={[
-                  "mt-3 h-11 w-full border-0 border-b bg-transparent px-0",
-                  "text-[15px] outline-none transition-colors duration-300",
-                  "focus:ring-0",
-                  errors.unipoleType
-                    ? "border-[#e62c36]"
-                    : "border-white/24 focus:border-white/80",
-                  form.unipoleType
-                    ? "text-white"
-                    : "text-white/35",
-                ].join(" ")}
+              />
+
+              <UnderlineField
+                id="company"
+                label="Company / Business name"
+                value={form.company}
+                onChange={(value) =>
+                  update("company", value)
+                }
+              />
+
+              <UnderlineField
+                id="email"
+                label="Email"
+                type="email"
+                required
+                value={form.email}
+                error={errors.email}
+                onChange={(value) =>
+                  update("email", value)
+                }
+              />
+
+              <UnderlineField
+                id="phone"
+                label="Phone number"
+                type="tel"
+                required
+                value={form.phone}
+                error={errors.phone}
+                onChange={(value) =>
+                  update("phone", value)
+                }
+              />
+
+              <UnderlineField
+                id="location"
+                label="Project location"
+                required
+                value={form.location}
+                placeholder="City, area or site address"
+                error={errors.location}
+                onChange={(value) =>
+                  update("location", value)
+                }
+              />
+
+              <label
+                htmlFor="unipoleType"
+                className="block"
               >
-                <option
-                  value=""
-                  className="bg-[#151515] text-white"
+                <span className="block text-xs font-medium tracking-tight text-white/75 sm:text-[13px]">
+                  Type of unipole*
+                </span>
+
+                <select
+                  id="unipoleType"
+                  name="unipoleType"
+                  value={form.unipoleType}
+                  onChange={(event) =>
+                    update(
+                      "unipoleType",
+                      event.target.value,
+                    )
+                  }
+                  className={[
+                    "mt-2 h-10 w-full border-0 border-b bg-transparent px-0",
+                    "text-sm outline-none transition-colors duration-300 sm:text-[15px]",
+                    "focus:ring-0",
+                    errors.unipoleType
+                      ? "border-red-500"
+                      : "border-white/25 focus:border-white/80",
+                    form.unipoleType
+                      ? "text-white"
+                      : "text-white/35",
+                  ].join(" ")}
                 >
-                  Select type
-                </option>
+                  <option
+                    value=""
+                    className="bg-[#151515] text-white"
+                  >
+                    Select type
+                  </option>
 
-                <option
-                  value="Standard Unipole"
-                  className="bg-[#151515] text-white"
-                >
-                  Standard Unipole
-                </option>
+                  <option
+                    value="Standard Unipole"
+                    className="bg-[#151515] text-white"
+                  >
+                    Standard Unipole
+                  </option>
 
-                <option
-                  value="LED Unipole"
-                  className="bg-[#151515] text-white"
-                >
-                  LED Unipole
-                </option>
+                  <option
+                    value="LED Unipole"
+                    className="bg-[#151515] text-white"
+                  >
+                    LED Unipole
+                  </option>
 
-                <option
-                  value="Special Signage"
-                  className="bg-[#151515] text-white"
-                >
-                  Special Signage
-                </option>
-              </select>
+                  <option
+                    value="Special Signage"
+                    className="bg-[#151515] text-white"
+                  >
+                    Special Signage
+                  </option>
+                </select>
 
-              <span className="mt-1.5 block min-h-4 text-[11px] text-[#ff7078]">
-                {errors.unipoleType ?? ""}
-              </span>
-            </label>
+                <span className="mt-1 block min-h-4 text-[11px] text-red-400">
+                  {errors.unipoleType ?? ""}
+                </span>
+              </label>
 
-            <label
-              htmlFor="message"
-              className="block sm:col-span-2"
-            >
-              <span className="block text-[12px] font-medium tracking-[-0.01em] text-white/78 sm:text-[13px]">
-                Site / Project details
-              </span>
+              <label
+                htmlFor="message"
+                className="block sm:col-span-2"
+              >
+                <span className="block text-xs font-medium tracking-tight text-white/75 sm:text-[13px]">
+                  Site / Project details
+                </span>
 
-              <textarea
-                id="message"
-                name="message"
-                value={form.message}
-                placeholder="Tell us about the site, available space, preferred size, lighting requirement or any other details."
-                onChange={(event) =>
-                  update(
-                    "message",
-                    event.target.value,
-                  )
-                }
-                className="mt-3 min-h-[130px] w-full resize-none border-0 border-b border-white/24 bg-transparent px-0 py-3 text-[15px] text-white outline-none transition-colors duration-300 placeholder:text-white/28 focus:border-white/80 focus:ring-0"
-              />
-            </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={form.message}
+                  placeholder="Tell us about the site, available space, preferred size, lighting requirement or any other details."
+                  onChange={(event) =>
+                    update(
+                      "message",
+                      event.target.value,
+                    )
+                  }
+                  className="mt-2 min-h-[118px] w-full resize-none border-0 border-b border-white/25 bg-transparent px-0 py-3 text-sm text-white outline-none transition-colors duration-300 placeholder:text-white/30 focus:border-white/80 focus:ring-0 sm:text-[15px]"
+                />
+              </label>
 
-            <label className="mt-4 flex items-start gap-3 text-[12px] leading-5 text-white/64 sm:col-span-2 sm:text-[13px]">
-              <input
-                type="checkbox"
-                checked={form.consent}
-                onChange={(event) =>
-                  update(
-                    "consent",
-                    event.target.checked,
-                  )
-                }
-                className="mt-1 h-4 w-4 shrink-0 appearance-none border border-white/70 bg-transparent checked:border-white checked:bg-white"
-              />
+              <label className="mt-4 flex items-start gap-3 text-[11px] leading-5 text-white/60 sm:col-span-2 sm:text-xs">
+                <input
+                  type="checkbox"
+                  checked={form.consent}
+                  onChange={(event) =>
+                    update(
+                      "consent",
+                      event.target.checked,
+                    )
+                  }
+                  className="mt-1 h-4 w-4 shrink-0 appearance-none border border-white/70 bg-transparent checked:border-white checked:bg-white"
+                />
 
-              <span>
-                I agree to be contacted by ADINN
-                regarding this unipole project
-                enquiry.
+                <span>
+                  I agree to be contacted by ADINN
+                  regarding this unipole project
+                  enquiry.
 
-                {errors.consent && (
-                  <span className="mt-1 block text-[11px] text-[#ff7078]">
-                    {errors.consent}
-                  </span>
-                )}
-              </span>
-            </label>
+                  {errors.consent && (
+                    <span className="mt-1 block text-[11px] text-red-400">
+                      {errors.consent}
+                    </span>
+                  )}
+                </span>
+              </label>
 
-            <button
-              type="submit"
-              className="mt-5 inline-flex h-14 items-center justify-center border border-white/70 px-8 text-sm font-medium text-white transition-all duration-300 hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:col-span-2 sm:max-w-[430px]"
-            >
-              Request Site Assessment
-            </button>
+              <button
+                type="submit"
+                className="mt-5 inline-flex h-12 items-center justify-center border border-white/70 px-7 text-sm font-medium text-white transition-all duration-300 hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:col-span-2 sm:max-w-[360px]"
+              >
+                Request Site Assessment
+              </button>
 
-            <p className="text-[11px] leading-5 text-white/40 sm:col-span-2">
-              Opens WhatsApp with your project
-              details prefilled.
-            </p>
-          </form>
+              <p className="text-[11px] leading-5 text-white/40 sm:col-span-2">
+                Opens WhatsApp with your project
+                details prefilled.
+              </p>
+            </form>
+          </div>
         </div>
       </div>
     </section>

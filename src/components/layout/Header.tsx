@@ -170,7 +170,7 @@ export function Header() {
   };
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-40">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-[100]">
       <div className="container-x flex justify-center pt-3">
         {/* Desktop header */}
         <motion.div
