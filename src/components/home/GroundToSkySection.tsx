@@ -729,6 +729,20 @@ function FloodLight({
         />
       </mesh>
 
+      {/* Adjustable hinge knuckle between yoke and housing */}
+      <mesh
+        position={[0, -0.02, -0.06]}
+        rotation={[Math.PI / 2, 0, 0]}
+        castShadow
+      >
+        <cylinderGeometry args={[0.045, 0.045, 0.14, 12]} />
+        <meshStandardMaterial
+          color="#5a6166"
+          metalness={0.85}
+          roughness={0.3}
+        />
+      </mesh>
+
       {/* Powder-coated floodlight housing */}
       <RoundedBox
         args={[0.56, 0.32, 0.42]}
@@ -743,6 +757,18 @@ function FloodLight({
           envMapIntensity={1.2}
         />
       </RoundedBox>
+
+      {/* Visible edge highlight around the lens opening, so the fixture
+          reads clearly against the black background */}
+      <mesh position={[0, 0, 0.205]}>
+        <ringGeometry args={[0.185, 0.208, 24]} />
+        <meshStandardMaterial
+          color="#6b7278"
+          metalness={0.7}
+          roughness={0.3}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
 
       {/* Rear heat-sink fins */}
       {coolingFins.map((x) => (
@@ -788,46 +814,39 @@ function FloodLight({
   );
 }
 
-function LightingRig() {
-  const upper = [-3.75, -1.88, 0, 1.88, 3.75];
-  const lower = [-3.75, -2.5, -1.25, 0, 1.25, 2.5, 3.75];
+/* Fixture x-positions across the top rail. All billboard illumination now
+   lives up here, structurally attached to the frame — no ground-level or
+   base-mounted fixtures remain. */
+const BOARD_LIGHT_X = [-3.75, -1.88, 0, 1.88, 3.75] as const;
 
+function LightingRig() {
   return (
     <group>
       <group name="LightArms">
-        {upper.map((x) => (
-          <BeamBetween
-            key={`upper-arm-${x}`}
-            start={[x, 1.78, -0.2]}
-            end={[x, 2.82, 1.2]}
-            radius={0.052}
-            color="#454a4e"
-          />
-        ))}
-        {lower.map((x) => (
-          <BeamBetween
-            key={`lower-arm-${x}`}
-            start={[x, -1.78, 0.5]}
-            end={[x, -2.52, 1.3]}
-            radius={0.048}
-            color="#4e5357"
-          />
+        {BOARD_LIGHT_X.map((x) => (
+          <group key={x}>
+            {/* Mounting bracket plate where the arm meets the top rail */}
+            <BoxMember
+              position={[x, 1.82, -0.14]}
+              size={[0.16, 0.16, 0.22]}
+              color="#4b5157"
+            />
+            <BeamBetween
+              start={[x, 1.86, -0.06]}
+              end={[x, 2.86, 1.22]}
+              radius={0.05}
+              color="#454a4e"
+            />
+          </group>
         ))}
       </group>
 
       <group name="FloodLights">
-        {upper.map((x) => (
+        {BOARD_LIGHT_X.map((x) => (
           <FloodLight
-            key={`upper-${x}`}
-            position={[x, 2.84, 1.24]}
-            rotation={[-0.46, 0, 0]}
-          />
-        ))}
-        {lower.map((x) => (
-          <FloodLight
-            key={`lower-${x}`}
-            position={[x, -2.57, 1.34]}
-            rotation={[0.52, 0, 0]}
+            key={x}
+            position={[x, 2.9, 1.28]}
+            rotation={[-0.5, 0, 0]}
           />
         ))}
       </group>
@@ -967,7 +986,26 @@ function RealisticUnipoleModel({
   const panelRef = useRef<THREE.Group | null>(null);
   const inspectionRef = useRef<THREE.Group | null>(null);
   const ghostRef = useRef<THREE.Group | null>(null);
+  const boardLightRefs = useRef<Array<THREE.SpotLight | null>>([]);
   const currentProgress = useRef(0);
+
+  /* Billboard floodlights + their aim targets, expressed in the same local
+     space as the fixtures themselves (LightingRig) and the board
+     (FrontDisplayPanel), so they inherit the model's transform and stay
+     correctly aimed regardless of scale. */
+  const boardLightRig = useMemo(
+    () =>
+      BOARD_LIGHT_X.map((x) => {
+        const target = new THREE.Object3D();
+        target.position.set(x * 1.12, 11.55, 0.32);
+
+        return {
+          position: [x, 14.45, 1.13] as Vec3,
+          target,
+        };
+      }),
+    [],
+  );
 
   const ghostSteelMaterial = useMemo(
     () =>
@@ -1026,6 +1064,15 @@ function RealisticUnipoleModel({
     const panel = smoothStep(0.72, 0.88, progress);
     const inspection = smoothStep(0.88, 1, progress);
     const ghost = 1 - smoothStep(0.08, 0.2, progress);
+
+    /* Billboard floodlights stay at zero until Stage 6 (Electrical &
+       Lighting) begins, then ramp in — reusing the same smoothed
+       progress value as the fixtures themselves so light and geometry
+       always agree. */
+    const boardLightIntensity = lighting * 6.2;
+    boardLightRefs.current.forEach((light) => {
+      if (light) light.intensity = boardLightIntensity;
+    });
 
     if (ghostRef.current) {
       ghostRef.current.visible = ghost > 0.01;
@@ -1152,7 +1199,7 @@ function RealisticUnipoleModel({
   });
 
   return (
-    <group scale={0.74} position={[0, -0.46, 0]}>
+    <group scale={0.94} position={[0, -0.46, 0]}>
       <group ref={ghostRef}>
         <mesh
           position={[0, 4.86, 0]}
@@ -1278,6 +1325,30 @@ function RealisticUnipoleModel({
         <LightingRig />
       </group>
 
+      {boardLightRig.map((rig, index) => (
+        <group key={index}>
+          <primitive object={rig.target} />
+
+          <spotLight
+            ref={(light) => {
+              boardLightRefs.current[index] = light;
+              if (light) light.target = rig.target;
+            }}
+            position={rig.position}
+            angle={0.26}
+            penumbra={0.68}
+            distance={9}
+            decay={1.8}
+            intensity={0}
+            color="#ffe9c2"
+            castShadow={index === 2}
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-bias={-0.0002}
+          />
+        </group>
+      ))}
+
       <group
         name="SignageBoard"
         ref={panelRef}
@@ -1290,6 +1361,107 @@ function RealisticUnipoleModel({
       <group ref={inspectionRef} visible={false}>
         <InspectionMarkers />
       </group>
+    </group>
+  );
+}
+
+function seededRandom(seed: number) {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+const FOLIAGE_SHADES = [
+  "#1f4634",
+  "#254f3a",
+  "#1a3b2c",
+  "#2c5942",
+] as const;
+
+const FOLIAGE_RADII = [0.3, 0.38, 0.46, 0.54] as const;
+
+/* Shared across every tree instance so foliage clusters reuse the same
+   geometry/material objects instead of allocating one per mesh. */
+const foliageGeometries = FOLIAGE_RADII.map(
+  (radius) => new THREE.IcosahedronGeometry(radius, 0),
+);
+
+const foliageMaterials = FOLIAGE_SHADES.map(
+  (color) =>
+    new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.95,
+      flatShading: true,
+    }),
+);
+
+function Tree({ position, seed }: { position: Vec3; seed: number }) {
+  const rand = (offset: number) => seededRandom(seed * 7.13 + offset);
+
+  const trunkHeight = 1.4 + rand(1) * 0.55;
+  const trunkTilt = (rand(2) - 0.5) * 0.09;
+  const trunkLean = (rand(3) - 0.5) * 0.07;
+  const treeScale = 0.82 + rand(4) * 0.42;
+  const treeRotation = rand(6) * Math.PI * 2;
+
+  const clusters = useMemo(
+    () =>
+      Array.from(
+        { length: 4 + Math.floor(rand(5) * 2) },
+        (_, index) => {
+          const angle = rand(10 + index) * Math.PI * 2;
+          const radius = 0.15 + rand(20 + index) * 0.26;
+
+          return {
+            position: [
+              Math.cos(angle) * radius,
+              trunkHeight * 0.76 + rand(30 + index) * 0.58,
+              Math.sin(angle) * radius,
+            ] as Vec3,
+            geometryIndex: Math.floor(
+              rand(40 + index) * FOLIAGE_RADII.length,
+            ),
+            materialIndex: Math.floor(
+              rand(50 + index) * FOLIAGE_SHADES.length,
+            ),
+          };
+        },
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [seed, trunkHeight],
+  );
+
+  return (
+    <group
+      position={position}
+      scale={treeScale}
+      rotation={[trunkTilt, treeRotation, trunkLean]}
+    >
+      <mesh position={[0, trunkHeight / 2, 0]} castShadow>
+        <cylinderGeometry args={[0.055, 0.15, trunkHeight, 8]} />
+        <meshStandardMaterial color="#3a3028" roughness={0.92} />
+      </mesh>
+
+      {/* Secondary branch stub for a less perfectly uniform silhouette */}
+      <mesh
+        position={[0.05, trunkHeight * 0.72, 0.03]}
+        rotation={[0, 0, 0.55]}
+        castShadow
+      >
+        <cylinderGeometry
+          args={[0.025, 0.055, trunkHeight * 0.32, 6]}
+        />
+        <meshStandardMaterial color="#3a3028" roughness={0.92} />
+      </mesh>
+
+      {clusters.map((cluster, index) => (
+        <mesh
+          key={index}
+          position={cluster.position}
+          geometry={foliageGeometries[cluster.geometryIndex]}
+          material={foliageMaterials[cluster.materialIndex]}
+          castShadow
+        />
+      ))}
     </group>
   );
 }
@@ -1316,8 +1488,8 @@ function RoadEnvironment() {
         <planeGeometry args={[34, 34]} />
         <meshStandardMaterial
           color="#15191c"
-          roughness={0.96}
-          metalness={0.02}
+          roughness={0.92}
+          metalness={0.06}
         />
       </mesh>
 
@@ -1329,9 +1501,23 @@ function RoadEnvironment() {
         <planeGeometry args={[10.5, 28]} />
         <meshStandardMaterial
           color="#20252a"
-          roughness={0.94}
+          roughness={0.88}
+          metalness={0.04}
         />
       </mesh>
+
+      {/* Subtle road-edge curbs */}
+      {[-5.4, 5.4].map((x) => (
+        <mesh
+          key={x}
+          position={[x, -0.262, -1.2]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          receiveShadow
+        >
+          <planeGeometry args={[0.32, 26]} />
+          <meshStandardMaterial color="#2c3136" roughness={0.85} />
+        </mesh>
+      ))}
 
       {[-2.3, 2.3].map((x) => (
         <group key={x}>
@@ -1369,105 +1555,41 @@ function RoadEnvironment() {
           </mesh>
 
           {Array.from({ length: 4 }, (_, row) =>
-            Array.from({ length: 2 }, (_, column) => (
-              <mesh
-                key={`${row}-${column}`}
-                position={[
-                  (column - 0.5) * (building.w * 0.38),
-                  building.h * 0.27 - row * (building.h * 0.17),
-                  building.d / 2 + 0.012,
-                ]}
-              >
-                <planeGeometry args={[0.24, 0.16]} />
-                <meshBasicMaterial
-                  color="#89b9c9"
-                  transparent
-                  opacity={0.32}
-                />
-              </mesh>
-            )),
+            Array.from({ length: 2 }, (_, column) => {
+              const lit =
+                seededRandom(index * 13 + row * 4 + column + 1) >
+                0.4;
+
+              return (
+                <mesh
+                  key={`${row}-${column}`}
+                  position={[
+                    (column - 0.5) * (building.w * 0.38),
+                    building.h * 0.27 - row * (building.h * 0.17),
+                    building.d / 2 + 0.012,
+                  ]}
+                >
+                  <planeGeometry args={[0.24, 0.16]} />
+                  <meshBasicMaterial
+                    color={lit ? "#e9c98a" : "#89b9c9"}
+                    transparent
+                    opacity={lit ? 0.5 : 0.18}
+                  />
+                </mesh>
+              );
+            }),
           )}
         </group>
       ))}
 
       {trees.map((x, index) => (
-        <group
+        <Tree
           key={x}
           position={[x, -0.18, -5.7 - (index % 2) * 1.2]}
-        >
-          <mesh position={[0, 0.85, 0]} castShadow>
-            <cylinderGeometry args={[0.11, 0.16, 1.7, 12]} />
-            <meshStandardMaterial color="#3a3028" roughness={0.9} />
-          </mesh>
-
-          <mesh position={[0, 1.95, 0]} castShadow>
-            <sphereGeometry args={[0.72, 18, 18]} />
-            <meshStandardMaterial color="#1f4634" roughness={0.96} />
-          </mesh>
-        </group>
+          seed={index + 1}
+        />
       ))}
     </group>
-  );
-}
-
-function AnimatedBoardLights({
-  progressRef,
-  reducedMotion,
-}: ModelProps) {
-  const lightsRef = useRef<Array<THREE.SpotLight | null>>([]);
-  const currentIntensity = useRef(0);
-
-  const targets = useMemo(() => {
-    return [-3.2, 0, 3.2].map((x) => {
-      const target = new THREE.Object3D();
-      target.position.set(x * 0.38, 7.75, 0);
-      return target;
-    });
-  }, []);
-
-  useFrame((_, delta) => {
-    const targetIntensity =
-      smoothStep(0.57, 0.72, progressRef.current) * 7.5;
-
-    currentIntensity.current = reducedMotion
-      ? targetIntensity
-      : damp(currentIntensity.current, targetIntensity, 5.5, delta);
-
-    lightsRef.current.forEach((light) => {
-      if (light) light.intensity = currentIntensity.current;
-    });
-  });
-
-  return (
-    <>
-      {targets.map((target, index) => {
-        const x = [-5.4, 0, 5.4][index];
-
-        return (
-          <group key={index}>
-            <primitive object={target} />
-
-            <spotLight
-              ref={(light) => {
-                lightsRef.current[index] = light;
-                if (light) light.target = target;
-              }}
-              position={[x, 12.4, 7.2]}
-              angle={0.28}
-              penumbra={0.72}
-              distance={20}
-              decay={1.75}
-              intensity={0}
-              color="#fff1cf"
-              castShadow={index === 1}
-              shadow-mapSize-width={1024}
-              shadow-mapSize-height={1024}
-              shadow-bias={-0.0002}
-            />
-          </group>
-        );
-      })}
-    </>
   );
 }
 
@@ -1525,11 +1647,6 @@ function Scene({ progressRef, reducedMotion }: ModelProps) {
 
       <RoadEnvironment />
 
-      <AnimatedBoardLights
-        progressRef={progressRef}
-        reducedMotion={reducedMotion}
-      />
-
       <RealisticUnipoleModel
         progressRef={progressRef}
         reducedMotion={reducedMotion}
@@ -1546,7 +1663,7 @@ function Scene({ progressRef, reducedMotion }: ModelProps) {
 
       <OrbitControls
         makeDefault
-        target={[0, 5.25, 0]}
+        target={[0, 5.8, 0]}
         enablePan={false}
         enableZoom={false}
         enableDamping
@@ -1828,15 +1945,15 @@ export function GroundToSkySection() {
           </h2>
         </header>
 
-        <div className="mx-auto mt-20 grid max-w-[1520px] items-start gap-12 lg:mt-28 lg:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)] lg:gap-14 xl:gap-20">
+        <div className="mx-auto mt-20 grid max-w-[1520px] items-start gap-12 lg:mt-28 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.95fr)] lg:gap-14 xl:gap-20">
           <div className="lg:sticky lg:top-[6.5rem]">
-            <div className="relative h-[520px] overflow-hidden border border-white/10 bg-[#07090a] shadow-[0_30px_100px_rgba(0,0,0,0.52)] sm:h-[620px] lg:h-[calc(100svh-8rem)] lg:min-h-[590px] lg:max-h-[780px]">
+            <div className="relative h-[460px] w-full overflow-hidden bg-[#07090a] sm:h-[600px] md:h-[680px] lg:h-[calc(100svh-7rem)] lg:min-h-[620px] lg:max-h-[880px]">
               <Canvas
                 dpr={[1, 1.5]}
                 shadows
                 frameloop={sceneActive ? "always" : "never"}
                 camera={{
-                  position: [12.5, 7.8, 24.2],
+                  position: [13.2, 8.6, 25.6],
                   fov: 34,
                   near: 0.1,
                   far: 110,

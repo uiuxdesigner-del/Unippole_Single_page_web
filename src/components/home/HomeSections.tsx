@@ -1,38 +1,32 @@
 "use client";
 
 import Image from "next/image";
-
 import {
+  AnimatePresence,
   animate,
   motion,
   type PanInfo,
   useMotionValue,
   useReducedMotion,
 } from "framer-motion";
-
 import {
   ArrowRight,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ClipboardList,
-  Compass,
   Eye,
   Layers,
   MapPin,
   Maximize2,
-  MessageCircle,
   Sparkles,
   Sun,
 } from "lucide-react";
-
 import {
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -45,8 +39,12 @@ import { scrollToHash } from "@/hooks/useLenis";
 
 import styles from "./HeroSection.module.css";
 
+/* =========================================================
+   HERO
+========================================================= */
+
 export function HeroSection() {
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = Boolean(useReducedMotion());
   const { open } = useCampaignPlan();
 
   const heroRef =
@@ -176,7 +174,7 @@ export function HeroSection() {
             aria-hidden="true"
           />
 
-          Premium Unipole
+          Premium outdoor visibility
         </motion.span>
 
         <ScrollFloat
@@ -188,7 +186,7 @@ export function HeroSection() {
           stagger={0.018}
           playOnMount
         >
-          Stand Tall. Stay Memorable.
+          One pole. Maximum brand visibility.
         </ScrollFloat>
 
         <motion.div
@@ -233,30 +231,43 @@ export function HeroSection() {
   );
 }
 
+/* =========================================================
+   ABOUT UNIPOLE
+========================================================= */
+
 const aboutFeatures = [
   {
     id: "structure",
-    title: "Maximum Visibility",
+    title: "Single Pole Structure",
     summary:
       "Strong, sturdy and space-efficient design.",
     description:
-      "Unipoles are high-impact outdoor structures strategically installed along highways to deliver long-distance visibility, making brands more noticeable, destinations easier to find, and businesses more memorable.",
+      "Built around a single engineered steel pole, a unipole creates a clean roadside presence while securely supporting a large-format advertising display.",
+    image: "/images/unipole-about.jpg",
+    imageAlt:
+      "Engineered single-pole UNIPOLE advertising structure",
   },
   {
     id: "visibility",
-    title: "Permanent Branding Asset",
+    title: "Maximum Visibility",
     summary:
       "High impact across long viewing distances.",
     description:
-      "A durable structure that delivers continuous brand presence for years.",
+      "Its elevated position and large creative area help brands remain visible to approaching traffic across highways, junctions and busy urban corridors.",
+    image: "/images/high-visibility.jpg",
+    imageAlt:
+      "Large UNIPOLE advertising display visible above a busy roadway",
   },
   {
     id: "locations",
-    title: "Landmark Identity",
+    title: "Strategic Locations",
     summary:
       "Present at key junctions and busy routes.",
     description:
-      "Transforms your business location into a recognisable and memorable destination.",
+      "Unipoles are positioned along major roads, commercial areas and high-traffic junctions where audience movement and brand exposure are strongest.",
+    image: "/images/strategic-placement.jpg",
+    imageAlt:
+      "UNIPOLE advertising structure positioned at a strategic high-traffic location",
   },
 ] as const;
 
@@ -264,7 +275,8 @@ type AboutFeatureId =
   (typeof aboutFeatures)[number]["id"];
 
 export function WhatIsUnipoleSection() {
-  const reducedMotion = useReducedMotion();
+  const reducedMotion =
+    Boolean(useReducedMotion());
 
   const sectionRef =
     useRef<HTMLElement | null>(null);
@@ -273,7 +285,9 @@ export function WhatIsUnipoleSection() {
     useRef<HTMLDivElement | null>(null);
 
   const descriptionRef =
-    useRef<HTMLParagraphElement | null>(null);
+    useRef<HTMLParagraphElement | null>(
+      null,
+    );
 
   const [
     activeFeatureId,
@@ -293,11 +307,7 @@ export function WhatIsUnipoleSection() {
     const pinnedContent =
       pinnedContentRef.current;
 
-    if (
-      !section ||
-      !pinnedContent ||
-      reducedMotion
-    ) {
+    if (!section || !pinnedContent) {
       return;
     }
 
@@ -319,22 +329,26 @@ export function WhatIsUnipoleSection() {
                 window.innerHeight * 1.35,
                 900,
               )}`,
-            pin: pinnedContent,
+            pin: reducedMotion
+              ? false
+              : pinnedContent,
             pinSpacing: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
 
             onUpdate: (self) => {
-              const nextIndex = Math.min(
-                aboutFeatures.length - 1,
-                Math.floor(
-                  self.progress *
-                    aboutFeatures.length,
-                ),
-              );
+              const nextIndex =
+                Math.min(
+                  aboutFeatures.length - 1,
+                  Math.floor(
+                    self.progress *
+                      aboutFeatures.length,
+                  ),
+                );
 
               if (
-                nextIndex === previousIndex
+                nextIndex ===
+                previousIndex
               ) {
                 return;
               }
@@ -342,7 +356,8 @@ export function WhatIsUnipoleSection() {
               previousIndex = nextIndex;
 
               setActiveFeatureId(
-                aboutFeatures[nextIndex].id,
+                aboutFeatures[nextIndex]
+                  .id,
               );
             },
           });
@@ -354,9 +369,11 @@ export function WhatIsUnipoleSection() {
     );
 
     const refreshFrame =
-      window.requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-      });
+      window.requestAnimationFrame(
+        () => {
+          ScrollTrigger.refresh();
+        },
+      );
 
     return () => {
       window.cancelAnimationFrame(
@@ -436,7 +453,9 @@ export function WhatIsUnipoleSection() {
                 ref={descriptionRef}
                 className="text-base leading-[1.75] text-neutral-600 md:text-lg"
               >
-                {activeFeature.description}
+                {
+                  activeFeature.description
+                }
               </p>
             </div>
 
@@ -496,31 +515,88 @@ export function WhatIsUnipoleSection() {
                 amount: 0.2,
               }}
               transition={{
-                duration:
-                  reducedMotion
-                    ? 0
-                    : 0.65,
-                ease: [
-                  0.22,
-                  1,
-                  0.36,
-                  1,
-                ],
-              }}
+  duration: reducedMotion
+    ? 0
+    : 0.22,
+  ease: [
+    0.22,
+    1,
+    0.36,
+    1,
+  ],
+}}
               className="relative h-[430px] w-full overflow-hidden rounded-[26px] bg-neutral-100 sm:h-[470px] lg:h-[500px] xl:h-[530px]"
             >
-              <Image
-                src="/images/unipole-about.jpg"
-                alt="Large unipole advertising structure positioned above a busy urban road"
-                fill
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover object-center"
-              />
+              <AnimatePresence
+  mode="sync"
+  initial={false}
+>
+                <motion.div
+                  key={activeFeature.id}
+                  initial={
+                    reducedMotion
+                      ? false
+                      : {
+                          opacity: 0,
+                          y: 18,
+                          scale: 1.025,
+                        }
+                  }
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                  }}
+                  exit={
+                    reducedMotion
+                      ? {
+                          opacity: 0,
+                        }
+                      : {
+                          opacity: 0,
+                          y: -14,
+                          scale: 0.99,
+                        }
+                  }
+                  transition={{
+                    duration:
+                      reducedMotion
+                        ? 0
+                        : 0.55,
+                    ease: [
+                      0.22,
+                      1,
+                      0.36,
+                      1,
+                    ],
+                  }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    key={
+                      activeFeature.image
+                    }
+                    src={
+                      activeFeature.image
+                    }
+                    alt={
+                      activeFeature.imageAlt
+                    }
+                    fill
+                    priority={
+                      activeFeature.id ===
+                      aboutFeatures[0].id
+                    }
+                    sizes="(min-width: 1280px) 52vw, (min-width: 1024px) 55vw, 100vw"
+                    className="object-cover object-center"
+                  />
 
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent"
-              />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent"
+                  />
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
           </div>
         </div>
@@ -529,48 +605,52 @@ export function WhatIsUnipoleSection() {
   );
 }
 
+/* =========================================================
+   WHY CHOOSE
+========================================================= */
+
 const benefits = [
   {
     n: "01",
     icon: Eye,
-    title: "Long-Distance Visibility",
+    title: "High Visibility",
     description:
-      "Capture attention well before customers reach your location.",
+      "Elevated positioning and large-format displays help brands remain visible from longer distances.",
   },
   {
     n: "02",
     icon: MapPin,
-    title: "High Brand Recall",
+    title: "Strategic Placement",
     description:
-      "Repeated exposure strengthens recognition and builds familiarity.",
+      "Locations are selected across key roads, junctions, commercial areas and high-traffic corridors.",
   },
   {
     n: "03",
     icon: Sparkles,
-    title: "Strategic Placement",
+    title: "Strong Brand Recall",
     description:
-      "Position your brand where traffic, visibility, and impact are highest.",
+      "Repeated exposure helps campaigns remain familiar to daily commuters and local audiences.",
   },
   {
     n: "04",
     icon: Sun,
-    title: "Directional Advantage",
+    title: "Day and Night Presence",
     description:
-      "Guide travellers and make your business easier to locate.",
+      "Illuminated options maintain campaign visibility beyond daylight hours.",
   },
   {
     n: "05",
     icon: Maximize2,
-    title: "24×7 Brand Exposure",
+    title: "Large Creative Impact",
     description:
-      "Promote your brand around the clock without interruption.",
+      "Generous display formats provide space for bold, focused and readable brand communication.",
   },
   {
     n: "06",
     icon: Layers,
-    title: "Long-Term Branding Asset",
+    title: "Flexible Campaign Planning",
     description:
-      "A permanent branding solution that delivers value for years.",
+      "Locations can be shortlisted according to city, area, size, illumination and availability.",
   },
 ];
 
@@ -601,14 +681,6 @@ const benefitImages = [
   },
 ];
 
-/*
- * EASY SIZE CONTROLS
- *
- * cardWidth: changes only the card width.
- * imageHeight: changes only the image height.
- * gap: changes only the gap between cards.
- * textMinHeight: keeps the text rows aligned.
- */
 const WHY_CARD_DIMENSIONS = {
   extraLargeDesktop: {
     cardWidth: 520,
@@ -662,29 +734,56 @@ type WhyCarouselLayout = {
 };
 
 export function WhyChooseSection() {
-  const reducedMotion = useReducedMotion();
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const trackX = useMotionValue(0);
-  const animationRef = useRef<ReturnType<typeof animate> | null>(null);
+  const reducedMotion =
+    Boolean(useReducedMotion());
 
-  const [currentIndex, setCurrentIndex] = useState(2);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [layout, setLayout] = useState<WhyCarouselLayout>({
-    cardWidth: 0,
-    imageHeight: 0,
-    textMinHeight: 0,
-    gap: 24,
-    peek: 0,
-  });
+  const viewportRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const trackX = useMotionValue(0);
+
+  const animationRef =
+    useRef<ReturnType<
+      typeof animate
+    > | null>(null);
+
+  const [
+    currentIndex,
+    setCurrentIndex,
+  ] = useState(2);
+
+  const [
+    isAnimating,
+    setIsAnimating,
+  ] = useState(false);
+
+  const [
+    isDragging,
+    setIsDragging,
+  ] = useState(false);
+
+  const [layout, setLayout] =
+    useState<WhyCarouselLayout>({
+      cardWidth: 0,
+      imageHeight: 0,
+      textMinHeight: 0,
+      gap: 24,
+      peek: 0,
+    });
 
   const cards = useMemo(
     () =>
-      benefits.map((benefit, index) => ({
-        ...benefit,
-        image: benefitImages[index]?.src ?? benefitImages[0].src,
-        imageAlt: benefitImages[index]?.alt ?? benefitImages[0].alt,
-      })),
+      benefits.map(
+        (benefit, index) => ({
+          ...benefit,
+          image:
+            benefitImages[index]?.src ??
+            benefitImages[0].src,
+          imageAlt:
+            benefitImages[index]?.alt ??
+            benefitImages[0].alt,
+        }),
+      ),
     [],
   );
 
@@ -700,10 +799,12 @@ export function WhyChooseSection() {
         card: cards[total - 1],
         key: "clone-before-1",
       },
-      ...cards.map((card, index) => ({
-        card,
-        key: `original-${index}`,
-      })),
+      ...cards.map(
+        (card, index) => ({
+          card,
+          key: `original-${index}`,
+        }),
+      ),
       {
         card: cards[0],
         key: "clone-after-1",
@@ -716,112 +817,210 @@ export function WhyChooseSection() {
   }, [cards]);
 
   useEffect(() => {
-    const viewport = viewportRef.current;
+    const viewport =
+      viewportRef.current;
 
-    if (!viewport) return;
+    if (!viewport) {
+      return;
+    }
 
     const updateLayout = () => {
-      const viewportWidth = viewport.clientWidth;
+      const viewportWidth =
+        viewport.clientWidth;
 
       if (viewportWidth >= 1600) {
-        const config = WHY_CARD_DIMENSIONS.extraLargeDesktop;
+        const config =
+          WHY_CARD_DIMENSIONS
+            .extraLargeDesktop;
+
         const maximumCardWidth =
-          (viewportWidth - config.gap - config.minimumSidePeek * 2) / 2;
-        const cardWidth = Math.min(config.cardWidth, maximumCardWidth);
-        const peek = (viewportWidth - cardWidth * 2 - config.gap) / 2;
+          (viewportWidth -
+            config.gap -
+            config.minimumSidePeek *
+              2) /
+          2;
+
+        const cardWidth = Math.min(
+          config.cardWidth,
+          maximumCardWidth,
+        );
+
+        const peek =
+          (viewportWidth -
+            cardWidth * 2 -
+            config.gap) /
+          2;
 
         setLayout({
           cardWidth,
-          imageHeight: config.imageHeight,
-          textMinHeight: config.textMinHeight,
+          imageHeight:
+            config.imageHeight,
+          textMinHeight:
+            config.textMinHeight,
           gap: config.gap,
           peek,
         });
+
         return;
       }
 
       if (viewportWidth >= 1280) {
-        const config = WHY_CARD_DIMENSIONS.largeDesktop;
+        const config =
+          WHY_CARD_DIMENSIONS
+            .largeDesktop;
+
         const maximumCardWidth =
-          (viewportWidth - config.gap - config.minimumSidePeek * 2) / 2;
-        const cardWidth = Math.min(config.cardWidth, maximumCardWidth);
-        const peek = (viewportWidth - cardWidth * 2 - config.gap) / 2;
+          (viewportWidth -
+            config.gap -
+            config.minimumSidePeek *
+              2) /
+          2;
+
+        const cardWidth = Math.min(
+          config.cardWidth,
+          maximumCardWidth,
+        );
+
+        const peek =
+          (viewportWidth -
+            cardWidth * 2 -
+            config.gap) /
+          2;
 
         setLayout({
           cardWidth,
-          imageHeight: config.imageHeight,
-          textMinHeight: config.textMinHeight,
+          imageHeight:
+            config.imageHeight,
+          textMinHeight:
+            config.textMinHeight,
           gap: config.gap,
           peek,
         });
+
         return;
       }
 
       if (viewportWidth >= 1024) {
-        const config = WHY_CARD_DIMENSIONS.desktop;
+        const config =
+          WHY_CARD_DIMENSIONS.desktop;
+
         const maximumCardWidth =
-          (viewportWidth - config.gap - config.minimumSidePeek * 2) / 2;
-        const cardWidth = Math.min(config.cardWidth, maximumCardWidth);
-        const peek = (viewportWidth - cardWidth * 2 - config.gap) / 2;
+          (viewportWidth -
+            config.gap -
+            config.minimumSidePeek *
+              2) /
+          2;
+
+        const cardWidth = Math.min(
+          config.cardWidth,
+          maximumCardWidth,
+        );
+
+        const peek =
+          (viewportWidth -
+            cardWidth * 2 -
+            config.gap) /
+          2;
 
         setLayout({
           cardWidth,
-          imageHeight: config.imageHeight,
-          textMinHeight: config.textMinHeight,
+          imageHeight:
+            config.imageHeight,
+          textMinHeight:
+            config.textMinHeight,
           gap: config.gap,
           peek,
         });
+
         return;
       }
 
       if (viewportWidth >= 768) {
-        const config = WHY_CARD_DIMENSIONS.tablet;
+        const config =
+          WHY_CARD_DIMENSIONS.tablet;
+
         const cardWidth = Math.min(
-          viewportWidth * config.widthRatio,
+          viewportWidth *
+            config.widthRatio,
           config.maximumWidth,
         );
-        const peek = (viewportWidth - cardWidth) / 2;
+
+        const peek =
+          (viewportWidth -
+            cardWidth) /
+          2;
 
         setLayout({
           cardWidth,
-          imageHeight: config.imageHeight,
-          textMinHeight: config.textMinHeight,
+          imageHeight:
+            config.imageHeight,
+          textMinHeight:
+            config.textMinHeight,
           gap: config.gap,
           peek,
         });
+
         return;
       }
 
       if (viewportWidth >= 640) {
-        const config = WHY_CARD_DIMENSIONS.smallTablet;
+        const config =
+          WHY_CARD_DIMENSIONS
+            .smallTablet;
+
         const cardWidth = Math.min(
-          viewportWidth * config.widthRatio,
+          viewportWidth *
+            config.widthRatio,
           config.maximumWidth,
         );
-        const peek = (viewportWidth - cardWidth) / 2;
+
+        const peek =
+          (viewportWidth -
+            cardWidth) /
+          2;
 
         setLayout({
           cardWidth,
-          imageHeight: config.imageHeight,
-          textMinHeight: config.textMinHeight,
+          imageHeight:
+            config.imageHeight,
+          textMinHeight:
+            config.textMinHeight,
           gap: config.gap,
           peek,
         });
+
         return;
       }
 
-      const config = WHY_CARD_DIMENSIONS.mobile;
-      const cardWidth = Math.max(240, viewportWidth - config.sidePadding * 2);
-      const responsiveImageHeight = Math.min(
-        config.imageHeight,
-        Math.max(190, viewportWidth * 0.62),
+      const config =
+        WHY_CARD_DIMENSIONS.mobile;
+
+      const cardWidth = Math.max(
+        240,
+        viewportWidth -
+          config.sidePadding * 2,
       );
-      const peek = (viewportWidth - cardWidth) / 2;
+
+      const responsiveImageHeight =
+        Math.min(
+          config.imageHeight,
+          Math.max(
+            190,
+            viewportWidth * 0.62,
+          ),
+        );
+
+      const peek =
+        (viewportWidth -
+          cardWidth) /
+        2;
 
       setLayout({
         cardWidth,
-        imageHeight: responsiveImageHeight,
-        textMinHeight: config.textMinHeight,
+        imageHeight:
+          responsiveImageHeight,
+        textMinHeight:
+          config.textMinHeight,
         gap: config.gap,
         peek,
       });
@@ -829,7 +1028,11 @@ export function WhyChooseSection() {
 
     updateLayout();
 
-    const resizeObserver = new ResizeObserver(updateLayout);
+    const resizeObserver =
+      new ResizeObserver(
+        updateLayout,
+      );
+
     resizeObserver.observe(viewport);
 
     return () => {
@@ -837,40 +1040,81 @@ export function WhyChooseSection() {
     };
   }, []);
 
-  const slideStep = layout.cardWidth + layout.gap;
-  const targetTrackX = layout.peek - currentIndex * slideStep;
+  const slideStep =
+    layout.cardWidth + layout.gap;
+
+  const targetTrackX =
+    layout.peek -
+    currentIndex * slideStep;
 
   const activeIndex =
-    ((currentIndex - 2) % cards.length + cards.length) % cards.length;
+    ((currentIndex - 2) %
+      cards.length +
+      cards.length) %
+    cards.length;
 
-  const fadeWidth = Math.min(Math.max(layout.peek * 0.6, 72), 190);
+  const fadeWidth = Math.min(
+    Math.max(
+      layout.peek * 0.6,
+      72,
+    ),
+    190,
+  );
 
   useEffect(() => {
-    if (layout.cardWidth === 0 || isDragging) {
+    if (
+      layout.cardWidth === 0 ||
+      isDragging
+    ) {
       return;
     }
 
     animationRef.current?.stop();
 
-    if (!isAnimating || reducedMotion) {
+    if (
+      !isAnimating ||
+      reducedMotion
+    ) {
       trackX.set(targetTrackX);
 
       if (isAnimating) {
         const firstOriginalIndex = 2;
-        const firstTrailingCloneIndex = firstOriginalIndex + cards.length;
 
-        let resetIndex: number | null = null;
+        const firstTrailingCloneIndex =
+          firstOriginalIndex +
+          cards.length;
 
-        if (currentIndex >= firstTrailingCloneIndex) {
-          resetIndex = currentIndex - cards.length;
-        } else if (currentIndex < firstOriginalIndex) {
-          resetIndex = currentIndex + cards.length;
+        let resetIndex:
+          | number
+          | null = null;
+
+        if (
+          currentIndex >=
+          firstTrailingCloneIndex
+        ) {
+          resetIndex =
+            currentIndex -
+            cards.length;
+        } else if (
+          currentIndex <
+          firstOriginalIndex
+        ) {
+          resetIndex =
+            currentIndex +
+            cards.length;
         }
 
         if (resetIndex !== null) {
-          const resetX = layout.peek - resetIndex * slideStep;
+          const resetX =
+            layout.peek -
+            resetIndex *
+              slideStep;
+
           trackX.set(resetX);
-          setCurrentIndex(resetIndex);
+
+          setCurrentIndex(
+            resetIndex,
+          );
         }
 
         setIsAnimating(false);
@@ -879,32 +1123,67 @@ export function WhyChooseSection() {
       return;
     }
 
-    const controls = animate(trackX, targetTrackX, {
-      duration: 0.62,
-      ease: [0.22, 1, 0.36, 1],
-      onComplete: () => {
-        const firstOriginalIndex = 2;
-        const firstTrailingCloneIndex = firstOriginalIndex + cards.length;
+    const controls = animate(
+      trackX,
+      targetTrackX,
+      {
+        duration: 0.62,
+        ease: [
+          0.22,
+          1,
+          0.36,
+          1,
+        ],
+        onComplete: () => {
+          const firstOriginalIndex =
+            2;
 
-        let resetIndex: number | null = null;
+          const firstTrailingCloneIndex =
+            firstOriginalIndex +
+            cards.length;
 
-        if (currentIndex >= firstTrailingCloneIndex) {
-          resetIndex = currentIndex - cards.length;
-        } else if (currentIndex < firstOriginalIndex) {
-          resetIndex = currentIndex + cards.length;
-        }
+          let resetIndex:
+            | number
+            | null = null;
 
-        if (resetIndex !== null) {
-          const resetX = layout.peek - resetIndex * slideStep;
-          trackX.set(resetX);
-          setCurrentIndex(resetIndex);
-        }
+          if (
+            currentIndex >=
+            firstTrailingCloneIndex
+          ) {
+            resetIndex =
+              currentIndex -
+              cards.length;
+          } else if (
+            currentIndex <
+            firstOriginalIndex
+          ) {
+            resetIndex =
+              currentIndex +
+              cards.length;
+          }
 
-        setIsAnimating(false);
+          if (
+            resetIndex !== null
+          ) {
+            const resetX =
+              layout.peek -
+              resetIndex *
+                slideStep;
+
+            trackX.set(resetX);
+
+            setCurrentIndex(
+              resetIndex,
+            );
+          }
+
+          setIsAnimating(false);
+        },
       },
-    });
+    );
 
-    animationRef.current = controls;
+    animationRef.current =
+      controls;
 
     return () => {
       controls.stop();
@@ -922,7 +1201,9 @@ export function WhyChooseSection() {
     trackX,
   ]);
 
-  const moveTo = (index: number) => {
+  const moveTo = (
+    index: number,
+  ) => {
     if (
       isAnimating ||
       isDragging ||
@@ -943,67 +1224,112 @@ export function WhyChooseSection() {
     moveTo(currentIndex + 1);
   };
 
-  const snapBackToCurrent = () => {
-    animationRef.current?.stop();
-    setIsAnimating(true);
+  const snapBackToCurrent =
+    () => {
+      animationRef.current?.stop();
 
-    if (reducedMotion) {
-      trackX.set(targetTrackX);
-      setIsAnimating(false);
-      return;
-    }
+      setIsAnimating(true);
 
-    const controls = animate(trackX, targetTrackX, {
-      duration: 0.42,
-      ease: [0.22, 1, 0.36, 1],
-      onComplete: () => {
+      if (reducedMotion) {
+        trackX.set(targetTrackX);
         setIsAnimating(false);
-      },
-    });
+        return;
+      }
 
-    animationRef.current = controls;
-  };
+      const controls = animate(
+        trackX,
+        targetTrackX,
+        {
+          duration: 0.42,
+          ease: [
+            0.22,
+            1,
+            0.36,
+            1,
+          ],
+          onComplete: () => {
+            setIsAnimating(false);
+          },
+        },
+      );
+
+      animationRef.current =
+        controls;
+    };
 
   const handleDragEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
+    _event:
+      | MouseEvent
+      | TouchEvent
+      | PointerEvent,
     info: PanInfo,
   ) => {
     setIsDragging(false);
 
-    if (layout.cardWidth === 0) {
+    if (
+      layout.cardWidth === 0
+    ) {
       return;
     }
 
     const projectedOffset =
-      info.offset.x + info.velocity.x * 0.16;
+      info.offset.x +
+      info.velocity.x * 0.16;
 
-    const movementThreshold = Math.min(
-      Math.max(slideStep * 0.22, 64),
-      120,
-    );
+    const movementThreshold =
+      Math.min(
+        Math.max(
+          slideStep * 0.22,
+          64,
+        ),
+        120,
+      );
 
-    if (Math.abs(projectedOffset) < movementThreshold) {
+    if (
+      Math.abs(
+        projectedOffset,
+      ) < movementThreshold
+    ) {
       snapBackToCurrent();
       return;
     }
 
     const rawSteps = Math.round(
-      Math.abs(projectedOffset) / Math.max(slideStep * 0.72, 1),
+      Math.abs(
+        projectedOffset,
+      ) /
+        Math.max(
+          slideStep * 0.72,
+          1,
+        ),
     );
 
-    const steps = Math.min(Math.max(rawSteps, 1), 2);
+    const steps = Math.min(
+      Math.max(
+        rawSteps,
+        1,
+      ),
+      2,
+    );
 
     setIsAnimating(true);
 
-    if (projectedOffset < 0) {
-      setCurrentIndex(currentIndex + steps);
-    } else {
-      setCurrentIndex(currentIndex - steps);
-    }
+    setCurrentIndex(
+      projectedOffset < 0
+        ? currentIndex + steps
+        : currentIndex - steps,
+    );
   };
 
-  const goToSlide = (index: number) => {
-    if (index === activeIndex) return;
+  const goToSlide = (
+    index: number,
+  ) => {
+    if (
+      index === activeIndex
+    ) {
+      return;
+    }
+
     moveTo(index + 2);
   };
 
@@ -1021,31 +1347,45 @@ export function WhyChooseSection() {
 
           <h2
             id="why-unipole-title"
-            className="mt-2 text-[clamp(4.35rem,3.8vw,3.75rem)] font-regular leading-[1] tracking-[-0.045em] text-neutral-950"
+            className="mt-2 text-[clamp(2.35rem,3.8vw,3.75rem)] font-regular leading-[1] tracking-[-0.045em] text-neutral-950"
           >
-            UNIPOLE
+            UNIPOLE Advertising
           </h2>
         </div>
 
         <div className="absolute bottom-0 right-5 hidden items-center gap-2 sm:right-8 md:flex lg:right-12">
           <button
             type="button"
-            onClick={showPrevious}
-            disabled={isAnimating || isDragging}
+            onClick={
+              showPrevious
+            }
+            disabled={
+              isAnimating ||
+              isDragging
+            }
             aria-label="Show previous benefit"
             className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-800 transition-transform duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
           >
-            <ChevronLeft size={27} strokeWidth={1.4} />
+            <ChevronLeft
+              size={27}
+              strokeWidth={1.4}
+            />
           </button>
 
           <button
             type="button"
             onClick={showNext}
-            disabled={isAnimating || isDragging}
+            disabled={
+              isAnimating ||
+              isDragging
+            }
             aria-label="Show next benefit"
             className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-800 transition-transform duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
           >
-            <ChevronRight size={27} strokeWidth={1.4} />
+            <ChevronRight
+              size={27}
+              strokeWidth={1.4}
+            />
           </button>
         </div>
       </div>
@@ -1060,7 +1400,8 @@ export function WhyChooseSection() {
         <motion.div
           drag="x"
           dragListener={
-            !isAnimating && layout.cardWidth > 0
+            !isAnimating &&
+            layout.cardWidth > 0
           }
           dragMomentum={false}
           dragDirectionLock
@@ -1068,53 +1409,71 @@ export function WhyChooseSection() {
             animationRef.current?.stop();
             setIsDragging(true);
           }}
-          onDragEnd={handleDragEnd}
+          onDragEnd={
+            handleDragEnd
+          }
           className="flex cursor-grab touch-pan-y select-none items-stretch active:cursor-grabbing"
           style={{
             x: trackX,
             gap: `${layout.gap}px`,
           }}
         >
-          {slides.map((slide) => (
-            <article
-              key={slide.key}
-              className="flex shrink-0 flex-col"
-              style={{
-                width: `${layout.cardWidth}px`,
-              }}
-            >
-              <div
-                className="relative w-full shrink-0 overflow-hidden rounded-[24px] bg-neutral-200 sm:rounded-[28px]"
+          {slides.map(
+            (slide) => (
+              <article
+                key={slide.key}
+                className="flex shrink-0 flex-col"
                 style={{
-                  height: `${layout.imageHeight}px`,
+                  width: `${layout.cardWidth}px`,
                 }}
               >
-                <Image
-                  src={slide.card.image}
-                  alt={slide.card.imageAlt}
-                  fill
-                  draggable={false}
-                  sizes="(min-width: 1600px) 520px, (min-width: 1280px) 460px, (min-width: 1024px) 390px, (min-width: 768px) 76vw, (min-width: 640px) 84vw, calc(100vw - 44px)"
-                  className="pointer-events-none object-cover object-center"
-                />
-              </div>
+                <div
+                  className="relative w-full shrink-0 overflow-hidden rounded-[24px] bg-neutral-200 sm:rounded-[28px]"
+                  style={{
+                    height: `${layout.imageHeight}px`,
+                  }}
+                >
+                  <Image
+                    src={
+                      slide.card
+                        .image
+                    }
+                    alt={
+                      slide.card
+                        .imageAlt
+                    }
+                    fill
+                    draggable={
+                      false
+                    }
+                    sizes="(min-width: 1600px) 520px, (min-width: 1280px) 460px, (min-width: 1024px) 390px, (min-width: 768px) 76vw, (min-width: 640px) 84vw, calc(100vw - 44px)"
+                    className="pointer-events-none object-cover object-center"
+                  />
+                </div>
 
-              <div
-                className="flex flex-col pt-5 sm:pt-6"
-                style={{
-                  minHeight: `${layout.textMinHeight}px`,
-                }}
-              >
-                <h3 className="text-[18px] font-regular leading-tight tracking-[-0.025em] text-neutral-950 sm:text-[20px] lg:text-[22px] 2xl:text-[24px]">
-                  {slide.card.title}
-                </h3>
+                <div
+                  className="flex flex-col pt-5 sm:pt-6"
+                  style={{
+                    minHeight: `${layout.textMinHeight}px`,
+                  }}
+                >
+                  <h3 className="text-[18px] font-regular leading-tight tracking-[-0.025em] text-neutral-950 sm:text-[20px] lg:text-[22px] 2xl:text-[24px]">
+                    {
+                      slide.card
+                        .title
+                    }
+                  </h3>
 
-                <p className="mt-2 max-w-[620px] text-[15px] leading-[1.55] text-neutral-600 sm:text-base md:text-[17px]">
-                  {slide.card.description}
-                </p>
-              </div>
-            </article>
-          ))}
+                  <p className="mt-2 max-w-[620px] text-[15px] leading-[1.55] text-neutral-600 sm:text-base md:text-[17px]">
+                    {
+                      slide.card
+                        .description
+                    }
+                  </p>
+                </div>
+              </article>
+            ),
+          )}
         </motion.div>
 
         <div
@@ -1137,22 +1496,36 @@ export function WhyChooseSection() {
       <div className="mt-7 flex items-center justify-center gap-3 md:hidden">
         <button
           type="button"
-          onClick={showPrevious}
-          disabled={isAnimating || isDragging}
+          onClick={
+            showPrevious
+          }
+          disabled={
+            isAnimating ||
+            isDragging
+          }
           aria-label="Show previous benefit"
           className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-900 transition-transform duration-200 active:scale-95 disabled:opacity-40"
         >
-          <ChevronLeft size={24} strokeWidth={1.5} />
+          <ChevronLeft
+            size={24}
+            strokeWidth={1.5}
+          />
         </button>
 
         <button
           type="button"
           onClick={showNext}
-          disabled={isAnimating || isDragging}
+          disabled={
+            isAnimating ||
+            isDragging
+          }
           aria-label="Show next benefit"
           className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#EEEDF0] text-neutral-900 transition-transform duration-200 active:scale-95 disabled:opacity-40"
         >
-          <ChevronRight size={24} strokeWidth={1.5} />
+          <ChevronRight
+            size={24}
+            strokeWidth={1.5}
+          />
         </button>
       </div>
 
@@ -1160,243 +1533,298 @@ export function WhyChooseSection() {
         className="mt-8 flex items-center justify-center gap-3 md:mt-10"
         aria-label="Select carousel slide"
       >
-        {cards.map((card, index) => {
-          const isActive = activeIndex === index;
+        {cards.map(
+          (card, index) => {
+            const isActive =
+              activeIndex === index;
 
-          return (
-            <button
-              key={card.title}
-              type="button"
-              onClick={() => goToSlide(index)}
-              disabled={isAnimating || isDragging}
-              aria-label={`Show ${card.title}`}
-              aria-current={isActive ? "true" : undefined}
-              className={[
-                "h-2.5 w-2.5 rounded-full",
-                "transition-all duration-300 ease-out",
-                isActive
-                  ? "scale-110 bg-neutral-950"
-                  : "bg-neutral-300",
-              ].join(" ")}
-            />
-          );
-        })}
+            return (
+              <button
+                key={
+                  card.title
+                }
+                type="button"
+                onClick={() =>
+                  goToSlide(
+                    index,
+                  )
+                }
+                disabled={
+                  isAnimating ||
+                  isDragging
+                }
+                aria-label={`Show ${card.title}`}
+                aria-current={
+                  isActive
+                    ? "true"
+                    : undefined
+                }
+                className={[
+                  "h-2.5 w-2.5 rounded-full",
+                  "transition-all duration-300 ease-out",
+                  isActive
+                    ? "scale-110 bg-neutral-950"
+                    : "bg-neutral-300",
+                ].join(" ")}
+              />
+            );
+          },
+        )}
       </div>
 
-      <p aria-live="polite" className="sr-only">
-        Showing {cards[activeIndex].title}
+      <p
+        aria-live="polite"
+        className="sr-only"
+      >
+        Showing{" "}
+        {
+          cards[activeIndex]
+            .title
+        }
       </p>
     </section>
   );
 }
 
-const KEY_CITIES = ["Chennai", "Madurai", "Coimbatore", "Bengaluru", "Hyderabad", "Kochi"] as const;
-const LOCATION_TYPES = ["Major Road", "Junction", "Highway", "Commercial District", "Transit Corridor"] as const;
-const CITY_COORDS: Record<(typeof KEY_CITIES)[number], { x: number; y: number }> = {
-  Chennai: { x: 340, y: 300 },
-  Madurai: { x: 260, y: 380 },
-  Coimbatore: { x: 200, y: 320 },
-  Bengaluru: { x: 220, y: 250 },
-  Hyderabad: { x: 230, y: 130 },
-  Kochi: { x: 150, y: 380 },
-};
+/* =========================================================
+   BUSINESS GROWTH
+========================================================= */
 
-
-const groundSteps = [
+const growthItems = [
   {
-    title: "Site Identification",
+    title: "Strategic Location",
     description:
-      "Evaluating placement, sight-lines, traffic patterns and audience relevance.",
+      "Sites selected where relevant audiences naturally travel.",
   },
   {
-    title: "Structural Planning",
+    title: "Campaign Visibility",
     description:
-      "Detailed engineering plans reviewed for structural integrity and permits.",
+      "Large-format communication designed to remain visible during daily travel.",
   },
   {
-    title: "Foundation Preparation",
+    title: "Repeated Exposure",
     description:
-      "Ground preparation with reinforced foundation for long-term stability.",
+      "Consistent roadside presence helps build familiarity over time.",
   },
   {
-    title: "Pole Installation",
+    title: "Brand Recall",
     description:
-      "Precision installation of the primary steel pole to the required elevation.",
+      "Repeated visibility supports stronger recognition across campaign periods.",
   },
   {
-    title: "Display Frame Setup",
-    description: "Assembly of the display frame at the correct height and orientation.",
-  },
-  {
-    title: "Electrical and Lighting",
+    title: "Customer Consideration",
     description:
-      "Wiring, illumination fixtures and safety systems installed as per specification.",
+      "Familiar brands are more likely to enter the audience consideration set.",
   },
   {
-    title: "Campaign Mounting",
+    title: "Business Enquiry",
     description:
-      "Campaign creative mounted and aligned for clean, readable presentation.",
-  },
-  {
-    title: "Final Inspection",
-    description: "Final inspection for structural, visual and compliance readiness.",
+      "Interested audiences can respond through the brand's available channels.",
   },
 ];
 
-export function GroundToSkySection() {
+export function BusinessGrowthSection() {
   return (
-    <section className="bg-white py-20 md:py-28">
+    <section className="bg-adinn-warm py-20 md:py-28">
       <div className="container-x">
         <div className="max-w-2xl">
           <span className="text-xs font-medium uppercase tracking-[0.25em] text-adinn-red">
-            From Ground to Sky
+            Business Growth Journey
           </span>
-          <h2 className="mt-3 text-h2 text-adinn-ink">The installation journey.</h2>
+
+          <h2 className="mt-3 text-h2 text-adinn-ink">
+            How outdoor presence supports growth.
+          </h2>
         </div>
 
-        <ol className="relative mt-12 space-y-8 border-l border-adinn-border pl-8">
-          {groundSteps.map((step, index) => (
-            <li key={step.title} className="relative">
-              <span className="absolute -left-[41px] top-0 grid h-6 w-6 place-items-center rounded-full border border-adinn-border bg-white text-[11px] font-semibold text-adinn-ink">
-                {index + 1}
-              </span>
-              <h3 className="text-lg font-semibold text-adinn-ink">{step.title}</h3>
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-adinn-ink-2">
-                {step.description}
-              </p>
-            </li>
-          ))}
-        </ol>
+        <div className="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+          {growthItems.map(
+            (item, index) => (
+              <article
+                key={
+                  item.title
+                }
+                className="border-t border-adinn-border pt-6"
+              >
+                <span className="text-xs tracking-widest text-adinn-muted">
+                  {String(
+                    index + 1,
+                  ).padStart(
+                    2,
+                    "0",
+                  )}
+                </span>
+
+                <h3 className="mt-2 text-lg font-semibold text-adinn-ink">
+                  {
+                    item.title
+                  }
+                </h3>
+
+                <p className="mt-2 text-sm leading-relaxed text-adinn-ink-2">
+                  {
+                    item.description
+                  }
+                </p>
+              </article>
+            ),
+          )}
+        </div>
       </div>
     </section>
   );
 }
 
-
-
+/* Kept only to avoid breaking older imports. */
 export function IndustriesSection() {
   return null;
 }
 
-const howItWorksSteps = [
-  {
-    title: "Explore Locations",
-    description: "Browse curated inventory across cities, sizes and illumination.",
-    icon: Compass,
-  },
-  {
-    title: "Review Site Details",
-    description: "Check specifications, audience profile and tentative availability.",
-    icon: Eye,
-  },
-  {
-    title: "Build Campaign Plan",
-    description: "Shortlist locations that fit your campaign strategy.",
-    icon: ClipboardList,
-  },
-  {
-    title: "Request Proposal",
-    description: "Share your plan and receive a tailored proposal from our team.",
-    icon: MessageCircle,
-  },
-];
-
+/* =========================================================
+   FAQ
+========================================================= */
 
 const faqs = [
   {
-    question: "What is UNIPOLE advertising?",
+    question:
+      "What is UNIPOLE advertising?",
     answer:
       "UNIPOLE advertising uses a large-format outdoor display supported by a single steel pole, typically installed along high-traffic roads and commercial areas.",
   },
   {
-    question: "Where are ADINN UNIPOLES available?",
+    question:
+      "Where are ADINN UNIPOLES available?",
     answer:
       "Sites are curated across Chennai, Madurai, Coimbatore, Bengaluru, Hyderabad and Kochi, with more locations added over time.",
   },
   {
-    question: "How do I check availability?",
+    question:
+      "How do I check availability?",
     answer:
       "Use the inventory filters to view sites by city, area, size, illumination and status. Availability shown is indicative — final confirmation is done by our team.",
   },
   {
-    question: "Is adding a site to the campaign plan a booking?",
+    question:
+      "Is adding a site to the campaign plan a booking?",
     answer:
       "No. The campaign plan is a personal shortlist to help you request a proposal. It does not reserve or hold the site.",
   },
   {
-    question: "How is pricing calculated?",
+    question:
+      "How is pricing calculated?",
     answer:
       "Pricing depends on city, location, size, illumination, campaign duration and season. We share transparent pricing once we understand your requirement.",
   },
   {
-    question: "Are illuminated sites available?",
+    question:
+      "Are illuminated sites available?",
     answer:
       "Yes. Front-lit, back-lit and non-illuminated options are available depending on the site.",
   },
   {
-    question: "Can ADINN support printing and mounting?",
+    question:
+      "Can ADINN support printing and mounting?",
     answer:
       "Yes. We can help with creative production, printing and mounting through our operations team.",
   },
   {
-    question: "How can I schedule a site visit?",
+    question:
+      "How can I schedule a site visit?",
     answer:
       "Request a site visit from the site details or the enquiry form and our team will coordinate.",
   },
   {
-    question: "Can I request multiple sites together?",
-    answer: "Yes. Add multiple sites to your campaign plan and request a combined proposal.",
+    question:
+      "Can I request multiple sites together?",
+    answer:
+      "Yes. Add multiple sites to your campaign plan and request a combined proposal.",
   },
   {
-    question: "How long should a campaign run?",
+    question:
+      "How long should a campaign run?",
     answer:
       "Most sites have a minimum campaign duration. Longer durations typically improve recall and cost efficiency.",
   },
 ];
 
 export function FaqSection() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] =
+    useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-adinn-warm py-20 md:py-28">
+    <section
+      id="faq"
+      className="bg-adinn-warm py-20 md:py-28"
+    >
       <div className="container-x grid gap-12 lg:grid-cols-[1fr_2fr] lg:gap-16">
         <div className="self-start lg:sticky lg:top-24">
           <span className="text-xs font-medium uppercase tracking-[0.25em] text-adinn-red">
             FAQ
           </span>
-          <h2 className="mt-3 text-h2 text-adinn-ink">Answers to common questions.</h2>
+
+          <h2 className="mt-3 text-h2 text-adinn-ink">
+            Answers to common
+            questions.
+          </h2>
         </div>
 
         <ul className="border-t border-adinn-border">
-          {faqs.map((faq, index) => {
-            const isOpen = open === index;
-            return (
-              <li key={faq.question} className="border-b border-adinn-border">
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : index)}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-6 py-5 text-left"
+          {faqs.map(
+            (faq, index) => {
+              const isOpen =
+                open === index;
+
+              return (
+                <li
+                  key={
+                    faq.question
+                  }
+                  className="border-b border-adinn-border"
                 >
-                  <span className="text-base font-medium text-adinn-ink md:text-lg">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    size={18}
-                    strokeWidth={1.75}
-                    className={`shrink-0 text-adinn-ink-2 transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {isOpen && (
-                  <div className="pb-6 pr-10 text-sm leading-relaxed text-adinn-ink-2">
-                    {faq.answer}
-                  </div>
-                )}
-              </li>
-            );
-          })}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpen(
+                        isOpen
+                          ? null
+                          : index,
+                      )
+                    }
+                    aria-expanded={
+                      isOpen
+                    }
+                    className="flex w-full items-center justify-between gap-6 py-5 text-left"
+                  >
+                    <span className="text-base font-medium text-adinn-ink md:text-lg">
+                      {
+                        faq.question
+                      }
+                    </span>
+
+                    <ChevronDown
+                      size={18}
+                      strokeWidth={
+                        1.75
+                      }
+                      className={`shrink-0 text-adinn-ink-2 transition-transform ${
+                        isOpen
+                          ? "rotate-180"
+                          : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isOpen && (
+                    <div className="pb-6 pr-10 text-sm leading-relaxed text-adinn-ink-2">
+                      {
+                        faq.answer
+                      }
+                    </div>
+                  )}
+                </li>
+              );
+            },
+          )}
         </ul>
       </div>
     </section>
