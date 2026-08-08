@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { Poppins, Geist } from "next/font/google";
-import "./globals.css";
+import { Geist, Poppins } from "next/font/google";
+
+import FloatingSocialBubble from "@/components/ui/FloatingSocialBubble";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import "./globals.css";
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,10 +31,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={poppins.className}>{children}</body>
+    <html
+      lang="en"
+      className={cn("font-sans", geist.variable)}
+    >
+      <body
+        className={cn(
+          poppins.className,
+          poppins.variable,
+        )}
+      >
+        {children}
+
+        {/* <FloatingSocialBubble /> */}
+      </body>
     </html>
   );
 }

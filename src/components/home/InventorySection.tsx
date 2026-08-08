@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   ArrowRight,
   ChevronLeft,
@@ -11,10 +12,19 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
-import ProposalBanner3D from "./ProposalBanner3D";
+const ProposalBanner3D = dynamic(
+  () => import("./ProposalBanner3D"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full min-h-[430px] w-full rounded-[10px] bg-[#020611]" />
+    ),
+  },
+);
 
 type ModuleKey = "400" | "500" | "600" | "800" | "900";
 type ModuleFilter = "all" | ModuleKey;
@@ -339,6 +349,24 @@ function CardSpecification({
       <span className="font-medium">{label}:</span>{" "}
       <span className="font-normal">{value}</span>
     </li>
+  );
+}
+
+function LazyProposalBanner({
+  shouldMount,
+  active,
+}: {
+  shouldMount: boolean;
+  active: boolean;
+}) {
+  return (
+    <div className="h-full w-full">
+      {shouldMount ? (
+        <ProposalBanner3D active={active} />
+      ) : (
+        <div className="h-full min-h-[430px] w-full rounded-[10px] bg-[#020611]" />
+      )}
+    </div>
   );
 }
 
@@ -750,6 +778,74 @@ export function InventorySection({
   const [selectedModule, setSelectedModule] =
     useState<UnipoleModule | null>(null);
 
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [shouldMountBanner, setShouldMountBanner] =
+    useState(false);
+  const [isBannerActive, setIsBannerActive] =
+    useState(false);
+
+  const activateBanner = useCallback(() => {
+    setIsBannerActive(true);
+  }, []);
+
+  /* Mount ProposalBanner3D shortly after the Hero has had its initial
+     paint — independent of scroll position, so the Canvas exists and
+     can render its first frame while the user is still up near Hero or
+     About, long before Inventory is anywhere close to the viewport. */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mount = () => setShouldMountBanner(true);
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    let idleHandle: number | null = null;
+
+    const startTimeoutId = window.setTimeout(() => {
+      if (typeof idleWindow.requestIdleCallback === "function") {
+        idleHandle = idleWindow.requestIdleCallback(mount, {
+          timeout: 1500,
+        });
+      } else {
+        mount();
+      }
+    }, 700);
+
+    return () => {
+      window.clearTimeout(startTimeoutId);
+      if (idleHandle !== null) {
+        idleWindow.cancelIdleCallback?.(idleHandle);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    /* Proximity only ever controls whether the already-mounted Canvas'
+       continuous rendering is active or paused — it no longer gates
+       mounting itself. */
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsBannerActive(entry.isIntersecting);
+      },
+      {
+        rootMargin: "1200px 0px 1200px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   const visibleModules = useMemo(() => {
     if (activeFilter === "all") {
       return unipoleModules;
@@ -784,8 +880,11 @@ export function InventorySection({
   return (
     <>
       <section
+        ref={sectionRef}
         id="inventory"
         aria-labelledby="inventory-title"
+        onPointerEnter={activateBanner}
+        onFocus={activateBanner}
         className="overflow-hidden bg-[#f8f8f8] py-20 sm:py-24 lg:py-[130px]"
       >
         <div className="mx-auto w-full max-w-[1786px] px-5 sm:px-7 lg:px-10 xl:px-[50px]">
@@ -853,7 +952,10 @@ export function InventorySection({
             <div
               className={`${ctaGridClass} min-h-[430px] [&>*]:h-full`}
             >
-              <ProposalBanner3D />
+              <LazyProposalBanner
+                shouldMount={shouldMountBanner}
+                active={isBannerActive}
+              />
             </div>
           </div>
         </div>

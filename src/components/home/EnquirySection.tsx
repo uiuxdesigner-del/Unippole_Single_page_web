@@ -22,7 +22,7 @@ const API_URL =
   "https://adinndigital.com/api/adinnunipole/index_adinnunipole.php";
 
 const ADMIN_EMAIL =
-  "webdeveloper1@adinn.co.in";
+  "uiuxdesigner@adinn.co.in";
 
 interface FormState {
   name: string;
