@@ -8,7 +8,9 @@ import {
   type ReactNode,
 } from "react";
 
-const CTAUnipoleScene = dynamic(
+import type { CTAUnipoleSceneProps } from "./CTAUnipoleScene";
+
+const CTAUnipoleScene = dynamic<CTAUnipoleSceneProps>(
   () => import("./CTAUnipoleScene"),
   {
     ssr: false,

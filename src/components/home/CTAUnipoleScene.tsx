@@ -443,7 +443,30 @@ function SceneContent() {
   );
 }
 
-export default function CTAUnipoleScene() {
+/* Fires once the renderer has produced its first actual frame, so the
+   caller can know the scene is genuinely visible instead of just
+   mounted. */
+function FirstFrameSignal({ onReady }: { onReady: () => void }) {
+  const firedRef = useRef(false);
+
+  useFrame(() => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+    onReady();
+  });
+
+  return null;
+}
+
+export type CTAUnipoleSceneProps = {
+  active?: boolean;
+  onReady?: () => void;
+};
+
+export default function CTAUnipoleScene({
+  active = true,
+  onReady,
+}: CTAUnipoleSceneProps) {
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -451,6 +474,7 @@ export default function CTAUnipoleScene() {
     >
       <Canvas
         dpr={[1, 1.5]}
+        frameloop={active ? "always" : "never"}
         camera={{
           position: [0, 2.6, 12.8],
           fov: 40,
@@ -478,6 +502,8 @@ export default function CTAUnipoleScene() {
         />
 
         <SceneContent />
+
+        {onReady && <FirstFrameSignal onReady={onReady} />}
       </Canvas>
     </div>
   );
