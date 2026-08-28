@@ -378,7 +378,7 @@ export default function UnipoleTypesStack() {
        * Bottom / near side becomes wider.
        */
 
-      const EXIT_SCALE = 1.12;
+      const EXIT_SCALE = 1.20;
 
       /*
        * Distance the outgoing card moves upward.
