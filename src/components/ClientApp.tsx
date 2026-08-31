@@ -15,7 +15,7 @@ import {
 
 import UnipoleTypesStack from "@/components/home/UnipoleTypesStack";
 
-import { GroundToSkySection } from "@/components/home/GroundToSkySection";
+
 import { InventorySection } from "@/components/home/InventorySection";
 import { DayNightCompare } from "@/components/home/DayNightCompare";
 import { EnquirySection } from "@/components/home/EnquirySection";
@@ -24,6 +24,7 @@ import { FooterSection } from "@/components/home/FooterSection";
 import { CampaignPlanDrawer } from "@/components/campaign/CampaignPlanDrawer";
 import { AddedToPlanToast } from "@/components/campaign/AddedToPlanToast";
 import { ProductModal } from "@/components/product/ProductModal";
+import GroundToSkySection from "./home/GroundToSkySection";
 
 function LenisBoot() {
   useLenisSetup();
