@@ -530,7 +530,7 @@ export function EnquirySection() {
 
               <div className="mt-10 space-y-4 text-sm text-white/70 sm:text-[15px]">
                 <a
-                  href={`tel:${siteConfig.phone}`}
+                  href={siteConfig.phoneHref}
                   className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
                 >
                   <Phone
@@ -541,17 +541,28 @@ export function EnquirySection() {
                   {siteConfig.phone}
                 </a>
 
-                <a
-                  href={`mailto:${siteConfig.email}`}
-                  className="flex w-fit items-center gap-3 transition-colors duration-300 hover:text-white"
-                >
-                  <Mail
-                    size={17}
-                    strokeWidth={1.6}
-                  />
+                {siteConfig.emails.map((email) => (
+                  <a
+                    key={email.address}
+                    href={`mailto:${email.address}`}
+                    className="flex w-fit items-start gap-3 transition-colors duration-300 hover:text-white"
+                  >
+                    <Mail
+                      size={17}
+                      strokeWidth={1.6}
+                      className="mt-[2px] shrink-0"
+                    />
 
-                  {siteConfig.email}
-                </a>
+                    <span className="min-w-0">
+                      <span className="block text-xs uppercase tracking-[0.12em] text-white/45">
+                        {email.label}
+                      </span>
+                      <span className="block break-all">
+                        {email.address}
+                      </span>
+                    </span>
+                  </a>
+                ))}
 
                 <a
                   href={buildWhatsAppUrl(

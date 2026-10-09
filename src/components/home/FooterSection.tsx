@@ -18,6 +18,8 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from "react";
 
+import { siteConfig } from "@/config/site";
+
 type Point = {
   x: number;
   y: number;
@@ -225,7 +227,7 @@ function TextPressure({
     setPointerToCentre,
   ]);
 
-  const animate = useCallback(() => {
+  const animate = useCallback(function animateFrame() {
     animationFrameRef.current = null;
 
     if (
@@ -267,12 +269,18 @@ function TextPressure({
         170,
       );
 
+    // Read all character bounds before changing font widths, so each letter
+    // does not force another synchronous layout during the same frame.
+    const characterBounds = characterRefs.current.map(
+      (character) => character?.getBoundingClientRect(),
+    );
     characterRefs.current.forEach(
-      (character) => {
+      (character, index) => {
         if (!character) return;
 
         const characterRect =
-          character.getBoundingClientRect();
+          characterBounds[index];
+        if (!characterRect) return;
 
         const centreX =
           characterRect.left -
@@ -346,12 +354,11 @@ function TextPressure({
       );
 
     if (
-      isPointerInsideRef.current ||
       remainingDistance > 0.25
     ) {
       animationFrameRef.current =
         window.requestAnimationFrame(
-          animate,
+          animateFrame,
         );
     }
   }, []);
@@ -595,25 +602,26 @@ export function FooterSection() {
 
                 <div className="mt-4 space-y-1 text-[16px] leading-relaxed text-neutral-800 sm:text-[18px] lg:text-[20px]">
                   <a
-                    href="tel:+917339509090"
+                    href={siteConfig.phoneHref}
                     className="block transition-opacity hover:opacity-60"
                   >
-                    +91 73395 09090
+                    {siteConfig.phone}
                   </a>
 
-                  <a
-                    href="tel:+919500388761"
-                    className="block transition-opacity hover:opacity-60"
-                  >
-                    +91 95003 88761
-                  </a>
-
-                  <a
-                    href="mailto:roadshowsales@adinn.co.in"
-                    className="block break-all transition-opacity hover:opacity-60"
-                  >
-                    roadshowsales@adinn.co.in
-                  </a>
+                  {siteConfig.emails.map((email) => (
+                    <a
+                      key={email.address}
+                      href={`mailto:${email.address}`}
+                      className="block transition-opacity hover:opacity-60"
+                    >
+                      <span className="block text-[13px] text-neutral-500 sm:text-[14px]">
+                        {email.label}
+                      </span>
+                      <span className="block break-all">
+                        {email.address}
+                      </span>
+                    </a>
+                  ))}
                 </div>
               </div>
 

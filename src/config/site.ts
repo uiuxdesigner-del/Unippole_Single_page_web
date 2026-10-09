@@ -2,9 +2,14 @@ export const siteConfig = {
   company: "ADINN Advertising Services",
   product: "UNIPOLE Advertising",
   tagline: "Visibility Built Above the Ordinary.",
-  email: "hello@adinn.example",
-  phone: "+91 90000 00000",
-  whatsapp: "919000000000",
+  /** The single contact number used across the site. */
+  phone: "+91 89298 84894",
+  phoneHref: "tel:+918929884894",
+  whatsapp: "918929884894",
+  emails: [
+    { label: "Operations Support", address: "signageoperationssupport_chn@adinn.co.in" },
+    { label: "Business Development", address: "bde-signagechn@adinn.co.in" },
+  ],
   address: "Madurai, Tamil Nadu, India",
   social: {
     instagram: "https://instagram.com/",

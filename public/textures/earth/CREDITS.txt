@@ -1,0 +1,22 @@
+Earth textures used by the Onepole hero globe (src/components/three/hero/EarthGlobe.tsx)
+
+All source imagery is from NASA Visible Earth and is in the public domain
+(NASA imagery is not copyrighted; credit "NASA Earth Observatory" is requested).
+
+earth-day-4k.jpg / earth-day-2k.jpg / region-south-india-day.jpg
+  Blue Marble Next Generation, December 2004, topography + bathymetry
+  https://visibleearth.nasa.gov/images/73909
+  Source file: world.topo.bathy.200412.3x21600x10800.jpg
+
+earth-night-4k.jpg / earth-night-2k.jpg / region-south-india-night.jpg
+  Earth at Night — Black Marble 2016 colour composite (Suomi NPP VIIRS)
+  https://visibleearth.nasa.gov/images/144898
+  Source file: BlackMarble_2016_3km.jpg
+
+earth-clouds-4k.jpg / earth-clouds-2k.jpg
+  Blue Marble cloud composite
+  https://visibleearth.nasa.gov/images/57747
+  Source file: cloud_combined_8192.tif
+
+The region-south-india-* files are crops of lon 68–88°E, lat 2–20°N
+(day at the full 21600 px source resolution; night upsampled to match).

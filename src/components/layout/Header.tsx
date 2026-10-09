@@ -59,6 +59,8 @@ const smoothHeaderEase = [0.16, 1, 0.3, 1] as const;
 export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // True while a dark section (the 3D hero) sits behind the header.
+  const [onDark, setOnDark] = useState(true);
   const [activeHref, setActiveHref] = useState("#top");
 
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -68,6 +70,10 @@ export function Header() {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 12);
+
+      const dark = document.querySelector("[data-header-theme='dark']");
+      const rect = dark?.getBoundingClientRect();
+      setOnDark(!!rect && rect.top < 48 && rect.bottom > 48);
     };
 
     handleScroll();
@@ -228,19 +234,39 @@ export function Header() {
             ].join(" ")}
             aria-label="ADINN Home"
           >
-            <Image
-              src="/AdinnLogo.svg"
-              alt="ADINN"
-              width={130}
-              height={42}
-              priority
+            <span
               className={[
-                "h-9 w-auto object-contain",
+                "relative block",
                 "transition-transform duration-500",
                 "ease-[cubic-bezier(0.16,1,0.3,1)]",
                 "group-hover:scale-[1.03]",
               ].join(" ")}
-            />
+            >
+              <Image
+                src="/AdinnLogo.svg"
+                alt="ADINN"
+                width={130}
+                height={42}
+                priority
+                className={[
+                  "h-9 w-auto object-contain transition-opacity duration-500",
+                  onDark ? "opacity-0" : "opacity-100",
+                ].join(" ")}
+              />
+              {/* White-lettered logo for the dark hero background. */}
+              <Image
+                src="/AdinnLogoWhite.svg"
+                alt=""
+                aria-hidden="true"
+                width={130}
+                height={42}
+                priority
+                className={[
+                  "absolute inset-0 h-9 w-auto object-contain transition-opacity duration-500",
+                  onDark ? "opacity-100" : "opacity-0",
+                ].join(" ")}
+              />
+            </span>
           </a>
 
           {/* Desktop PillNav */}
@@ -316,14 +342,31 @@ export function Header() {
             className="group flex shrink-0 items-center"
             aria-label="ADINN Home"
           >
-            <Image
-              src="/AdinnLogo.svg"
-              alt="ADINN"
-              width={120}
-              height={40}
-              priority
-              className="h-9 w-auto object-contain"
-            />
+            <span className="relative block">
+              <Image
+                src="/AdinnLogo.svg"
+                alt="ADINN"
+                width={120}
+                height={40}
+                priority
+                className={[
+                  "h-9 w-auto object-contain transition-opacity duration-500",
+                  onDark ? "opacity-0" : "opacity-100",
+                ].join(" ")}
+              />
+              <Image
+                src="/AdinnLogoWhite.svg"
+                alt=""
+                aria-hidden="true"
+                width={120}
+                height={40}
+                priority
+                className={[
+                  "absolute inset-0 h-9 w-auto object-contain transition-opacity duration-500",
+                  onDark ? "opacity-100" : "opacity-0",
+                ].join(" ")}
+              />
+            </span>
           </a>
 
           <button

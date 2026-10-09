@@ -324,11 +324,11 @@ Preserve validation and responsive stacking.
 
 Source: `src/components/home/FooterSection.tsx`
 
-Current contacts:
+Current contacts (single source: `src/config/site.ts`):
 
-- `+91 73395 09090`
-- `+91 95003 88761`
-- `roadshowsales@adinn.co.in`
+- `+91 89298 84894` (only phone number; also used for WhatsApp)
+- Operations Support: `signageoperationssupport_chn@adinn.co.in`
+- Business Development: `bde-signagechn@adinn.co.in`
 
 Locations:
 

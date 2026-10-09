@@ -78,8 +78,6 @@ export function DayNightCompare() {
             src={DAY_IMAGE}
             alt="Unipole advertising site during daytime"
             fill
-            priority
-            unoptimized
             draggable={false}
             sizes="(max-width: 768px) 100vw, 1200px"
             className="pointer-events-none select-none object-cover"
@@ -97,7 +95,6 @@ export function DayNightCompare() {
               src={NIGHT_IMAGE}
               alt=""
               fill
-              unoptimized
               draggable={false}
               sizes="(max-width: 768px) 100vw, 1200px"
               className="pointer-events-none select-none object-cover"

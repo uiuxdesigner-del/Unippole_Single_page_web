@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   type MutableRefObject,
+  type RefObject,
 } from "react";
 import {
   Canvas,
@@ -163,11 +164,54 @@ void main() {
 
 interface SilkPlaneProps {
   uniforms: SilkUniforms;
+  containerRef: RefObject<HTMLDivElement | null>;
 }
 
 const SilkPlane = forwardRef<Mesh, SilkPlaneProps>(
-  function SilkPlane({ uniforms }, ref) {
+  function SilkPlane({ uniforms, containerRef }, ref) {
     const { viewport } = useThree();
+    const setFrameloop = useThree((state) => state.setFrameloop);
+    const invalidate = useThree((state) => state.invalidate);
+    const isAnimatingRef = useRef(false);
+
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const motionQuery = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      );
+      let isVisible = false;
+
+      const updateRendering = () => {
+        const canRender = isVisible && !document.hidden;
+        isAnimatingRef.current = canRender && !motionQuery.matches;
+
+        setFrameloop(
+          isAnimatingRef.current ? "always" : canRender ? "demand" : "never",
+        );
+
+        if (canRender) invalidate();
+      };
+
+      const observer = new IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+        updateRendering();
+      });
+
+      observer.observe(container);
+      motionQuery.addEventListener("change", updateRendering);
+      document.addEventListener("visibilitychange", updateRendering);
+      updateRendering();
+
+      return () => {
+        observer.disconnect();
+        motionQuery.removeEventListener("change", updateRendering);
+        document.removeEventListener("visibilitychange", updateRendering);
+        isAnimatingRef.current = false;
+        setFrameloop("never");
+      };
+    }, [containerRef, invalidate, setFrameloop]);
 
     useLayoutEffect(() => {
       const meshReference =
@@ -188,7 +232,7 @@ const SilkPlane = forwardRef<Mesh, SilkPlaneProps>(
       const meshReference =
         ref as MutableRefObject<Mesh | null>;
 
-      if (!meshReference.current) {
+      if (!meshReference.current || !isAnimatingRef.current) {
         return;
       }
 
@@ -199,7 +243,7 @@ const SilkPlane = forwardRef<Mesh, SilkPlaneProps>(
         };
 
       material.uniforms.uTime.value +=
-        0.1 * delta;
+        0.1 * Math.min(delta, 0.05);
     });
 
     return (
@@ -236,6 +280,7 @@ export default function Silk({
   className,
 }: SilkProps) {
   const meshRef = useRef<Mesh>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const uniforms = useMemo<SilkUniforms>(
     () => ({
@@ -289,6 +334,7 @@ export default function Silk({
 
   return (
     <div
+      ref={containerRef}
       className={className}
       aria-hidden="true"
       style={{
@@ -299,9 +345,9 @@ export default function Silk({
     >
       <Canvas
         dpr={[1, 1.5]}
-        frameloop="always"
+        frameloop="demand"
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: false,
           powerPreference: "high-performance",
         }}
@@ -314,6 +360,7 @@ export default function Silk({
         <SilkPlane
           ref={meshRef}
           uniforms={uniforms}
+          containerRef={containerRef}
         />
       </Canvas>
     </div>

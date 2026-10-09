@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   AnimatePresence,
   animate,
@@ -33,11 +34,13 @@ import { SplitText } from "gsap/SplitText";
 
 import ScrollFloat from "@/components/text/ScrollFloat";
 import { BrandButton } from "@/components/ui/BrandButton";
-import Silk from "@/components/ui/Silk";
 import { useCampaignPlan } from "@/context/CampaignPlanContext";
 import { scrollToHash } from "@/hooks/useLenis";
 
 import styles from "./HeroSection.module.css";
+
+// Let the heading and navigation hydrate without waiting for WebGL.
+const Silk = dynamic(() => import("@/components/ui/Silk"), { ssr: false });
 
 /* =========================================================
    HERO
@@ -583,10 +586,6 @@ export function WhatIsUnipoleSection() {
                       activeFeature.imageAlt
                     }
                     fill
-                    priority={
-                      activeFeature.id ===
-                      aboutFeatures[0].id
-                    }
                     sizes="(min-width: 1280px) 52vw, (min-width: 1024px) 55vw, 100vw"
                     className="object-cover object-center"
                   />

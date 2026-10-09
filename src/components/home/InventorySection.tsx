@@ -21,7 +21,7 @@ const ProposalBanner3D = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-full min-h-[430px] w-full rounded-[10px] bg-[#020611]" />
+      <div className="h-full min-h-[470px] w-full rounded-[10px] bg-[#020611] lg:min-h-[500px] 2xl:min-h-[516px]" />
     ),
   },
 );
@@ -364,7 +364,7 @@ function LazyProposalBanner({
       {shouldMount ? (
         <ProposalBanner3D active={active} />
       ) : (
-        <div className="h-full min-h-[430px] w-full rounded-[10px] bg-[#020611]" />
+        <div className="h-full min-h-[470px] w-full rounded-[10px] bg-[#020611] lg:min-h-[500px] 2xl:min-h-[516px]" />
       )}
     </div>
   );
@@ -778,72 +778,41 @@ export function InventorySection({
   const [selectedModule, setSelectedModule] =
     useState<UnipoleModule | null>(null);
 
-  const sectionRef = useRef<HTMLElement | null>(null);
+  const bannerRef = useRef<HTMLDivElement | null>(null);
   const [shouldMountBanner, setShouldMountBanner] =
     useState(false);
   const [isBannerActive, setIsBannerActive] =
     useState(false);
 
-  const activateBanner = useCallback(() => {
-    setIsBannerActive(true);
-  }, []);
-
-  /* Mount ProposalBanner3D shortly after the Hero has had its initial
-     paint — independent of scroll position, so the Canvas exists and
-     can render its first frame while the user is still up near Hero or
-     About, long before Inventory is anywhere close to the viewport. */
+  // Load the scene shortly before it is reached; animate only while visible.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mount = () => setShouldMountBanner(true);
-
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (
-        callback: IdleRequestCallback,
-        options?: IdleRequestOptions,
-      ) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-
-    let idleHandle: number | null = null;
-
-    const startTimeoutId = window.setTimeout(() => {
-      if (typeof idleWindow.requestIdleCallback === "function") {
-        idleHandle = idleWindow.requestIdleCallback(mount, {
-          timeout: 1500,
-        });
-      } else {
-        mount();
-      }
-    }, 700);
-
-    return () => {
-      window.clearTimeout(startTimeoutId);
-      if (idleHandle !== null) {
-        idleWindow.cancelIdleCallback?.(idleHandle);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    /* Proximity only ever controls whether the already-mounted Canvas'
-       continuous rendering is active or paused — it no longer gates
-       mounting itself. */
-    const observer = new IntersectionObserver(
+    const banner = bannerRef.current;
+    if (!banner) return;
+    let inView = false;
+    const updateActivity = () => setIsBannerActive(inView && !document.hidden);
+    const loadObserver = new IntersectionObserver(
       ([entry]) => {
-        setIsBannerActive(entry.isIntersecting);
+        if (!entry.isIntersecting) return;
+        setShouldMountBanner(true);
+        loadObserver.disconnect();
       },
-      {
-        rootMargin: "1200px 0px 1200px 0px",
-        threshold: 0.01,
-      },
+      { rootMargin: "600px 0px", threshold: 0 },
     );
-
-    observer.observe(section);
-    return () => observer.disconnect();
+    const activityObserver = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        updateActivity();
+      },
+      { threshold: 0 },
+    );
+    loadObserver.observe(banner);
+    activityObserver.observe(banner);
+    document.addEventListener("visibilitychange", updateActivity);
+    return () => {
+      loadObserver.disconnect();
+      activityObserver.disconnect();
+      document.removeEventListener("visibilitychange", updateActivity);
+    };
   }, []);
 
   const visibleModules = useMemo(() => {
@@ -880,11 +849,8 @@ export function InventorySection({
   return (
     <>
       <section
-        ref={sectionRef}
         id="inventory"
         aria-labelledby="inventory-title"
-        onPointerEnter={activateBanner}
-        onFocus={activateBanner}
         className="overflow-hidden bg-[#f8f8f8] py-20 sm:py-24 lg:py-[130px]"
       >
         <div className="mx-auto w-full max-w-[1786px] px-5 sm:px-7 lg:px-10 xl:px-[50px]">
@@ -950,7 +916,8 @@ export function InventorySection({
             ))}
 
             <div
-              className={`${ctaGridClass} min-h-[430px] [&>*]:h-full`}
+              ref={bannerRef}
+              className={`${ctaGridClass} min-h-[470px] lg:min-h-[500px] 2xl:min-h-[516px] [&>*]:h-full`}
             >
               <LazyProposalBanner
                 shouldMount={shouldMountBanner}

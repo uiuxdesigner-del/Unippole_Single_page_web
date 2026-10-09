@@ -1,17 +1,16 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
 import { CampaignPlanProvider } from "@/context/CampaignPlanContext";
 import { useLenisSetup } from "@/hooks/useLenis";
 import { Header } from "@/components/layout/Header";
 
 import {
   FaqSection,
-  HeroSection,
   WhatIsUnipoleSection,
   WhyChooseSection,
 } from "@/components/home/HomeSections";
+
+import { HeroScene } from "@/components/three/HeroScene";
 
 import UnipoleTypesStack from "@/components/home/UnipoleTypesStack";
 
@@ -42,7 +41,7 @@ function WebsiteContent() {
       <Header />
 
       <main>
-        <HeroSection />
+        <HeroScene />
 
         <UnipoleTypesStack />
 
