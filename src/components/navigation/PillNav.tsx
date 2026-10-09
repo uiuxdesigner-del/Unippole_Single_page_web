@@ -14,14 +14,10 @@
  * - GSAP motion respects prefers-reduced-motion.
  */
 
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type MouseEvent,
-} from "react";
+import React, { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { gsap } from "gsap";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { PillSplash } from "@/components/layout/PillSplash";
 
 export type PillNavItem = {
   label: string;
@@ -38,6 +34,15 @@ export interface PillNavProps {
   className?: string;
   ease?: string;
   baseColor?: string;
+  /** Background of the strip behind the desktop pills (defaults to baseColor). */
+  trackColor?: string;
+  /** Space between desktop pills (default 3px). */
+  pillGap?: string;
+  /**
+   * Particle splash of the desktop pill's white background on hover, instead
+   * of the circular fill + text swap. The label itself stays static.
+   */
+  splash?: boolean;
   pillColor?: string;
   hoveredPillTextColor?: string;
   pillTextColor?: string;
@@ -55,6 +60,9 @@ const PillNav: React.FC<PillNavProps> = ({
   className = "",
   ease = "power2.easeOut",
   baseColor = "#111111",
+  trackColor,
+  pillGap = "3px",
+  splash = false,
   pillColor = "#ffffff",
   hoveredPillTextColor = "#ffffff",
   pillTextColor = "#111111",
@@ -62,22 +70,16 @@ const PillNav: React.FC<PillNavProps> = ({
   onNavigate,
   initialLoadAnimation = true,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
   const resolvedPillTextColor = pillTextColor ?? baseColor;
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] =
-    useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const circleRefs = useRef<
-    Array<HTMLSpanElement | null>
-  >([]);
+  const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
 
-  const timelineRefs = useRef<
-    Array<gsap.core.Timeline | null>
-  >([]);
+  const timelineRefs = useRef<Array<gsap.core.Timeline | null>>([]);
 
-  const activeTweenRefs = useRef<
-    Array<gsap.core.Tween | null>
-  >([]);
+  const activeTweenRefs = useRef<Array<gsap.core.Tween | null>>([]);
 
   const logoImgRef = useRef<HTMLImageElement | null>(null);
   const logoTweenRef = useRef<gsap.core.Tween | null>(null);
@@ -88,9 +90,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const reducedMotionRef = useRef(false);
 
   useEffect(() => {
-    const query = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    );
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const handleMotionPreference = () => {
       reducedMotionRef.current = query.matches;
@@ -98,23 +98,17 @@ const PillNav: React.FC<PillNavProps> = ({
 
     handleMotionPreference();
 
-    query.addEventListener(
-      "change",
-      handleMotionPreference,
-    );
+    query.addEventListener("change", handleMotionPreference);
 
     return () => {
-      query.removeEventListener(
-        "change",
-        handleMotionPreference,
-      );
+      query.removeEventListener("change", handleMotionPreference);
     };
   }, []);
 
-  const duration = (value: number) =>
-    reducedMotionRef.current ? 0 : value;
+  const duration = (value: number) => (reducedMotionRef.current ? 0 : value);
 
   useEffect(() => {
+    if (splash) return;
     const createAnimations = () => {
       circleRefs.current.forEach((circle, index) => {
         if (!circle?.parentElement) return;
@@ -127,23 +121,12 @@ const PillNav: React.FC<PillNavProps> = ({
 
         if (!width || !height) return;
 
-        const radius =
-          ((width * width) / 4 + height * height) /
-          (2 * height);
+        const radius = ((width * width) / 4 + height * height) / (2 * height);
 
         const diameter = Math.ceil(2 * radius) + 2;
 
         const delta =
-          Math.ceil(
-            radius -
-              Math.sqrt(
-                Math.max(
-                  0,
-                  radius * radius -
-                    (width * width) / 4,
-                ),
-              ),
-          ) + 1;
+          Math.ceil(radius - Math.sqrt(Math.max(0, radius * radius - (width * width) / 4))) + 1;
 
         const transformOriginY = diameter - delta;
 
@@ -157,15 +140,9 @@ const PillNav: React.FC<PillNavProps> = ({
           transformOrigin: `50% ${transformOriginY}px`,
         });
 
-        const defaultLabel =
-          pill.querySelector<HTMLElement>(
-            ".pill-label",
-          );
+        const defaultLabel = pill.querySelector<HTMLElement>(".pill-label");
 
-        const hoverLabel =
-          pill.querySelector<HTMLElement>(
-            ".pill-label-hover",
-          );
+        const hoverLabel = pill.querySelector<HTMLElement>(".pill-label-hover");
 
         if (defaultLabel) {
           gsap.set(defaultLabel, {
@@ -290,10 +267,7 @@ const PillNav: React.FC<PillNavProps> = ({
     const activeTweens = activeTweenRefs.current;
 
     return () => {
-      window.removeEventListener(
-        "resize",
-        handleResize,
-      );
+      window.removeEventListener("resize", handleResize);
 
       timelines.forEach((timeline) => {
         timeline?.kill();
@@ -305,7 +279,7 @@ const PillNav: React.FC<PillNavProps> = ({
 
       logoTweenRef.current?.kill();
     };
-  }, [items, ease, initialLoadAnimation]);
+  }, [items, ease, initialLoadAnimation, splash]);
 
   const handleEnter = (index: number) => {
     const timeline = timelineRefs.current[index];
@@ -314,12 +288,11 @@ const PillNav: React.FC<PillNavProps> = ({
 
     activeTweenRefs.current[index]?.kill();
 
-    activeTweenRefs.current[index] =
-      timeline.tweenTo(timeline.duration(), {
-        duration: duration(0.3),
-        ease,
-        overwrite: "auto",
-      });
+    activeTweenRefs.current[index] = timeline.tweenTo(timeline.duration(), {
+      duration: duration(0.3),
+      ease,
+      overwrite: "auto",
+    });
   };
 
   const handleLeave = (index: number) => {
@@ -329,12 +302,11 @@ const PillNav: React.FC<PillNavProps> = ({
 
     activeTweenRefs.current[index]?.kill();
 
-    activeTweenRefs.current[index] =
-      timeline.tweenTo(0, {
-        duration: duration(0.2),
-        ease,
-        overwrite: "auto",
-      });
+    activeTweenRefs.current[index] = timeline.tweenTo(0, {
+      duration: duration(0.2),
+      ease,
+      overwrite: "auto",
+    });
   };
 
   const handleLogoEnter = () => {
@@ -356,10 +328,7 @@ const PillNav: React.FC<PillNavProps> = ({
     });
   };
 
-  const handleNavigation = (
-    event: MouseEvent<HTMLAnchorElement>,
-    href: string,
-  ) => {
+  const handleNavigation = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (!onNavigate) return;
 
     event.preventDefault();
@@ -375,9 +344,7 @@ const PillNav: React.FC<PillNavProps> = ({
     const mobileMenu = mobileMenuRef.current;
 
     if (hamburger) {
-      const lines = hamburger.querySelectorAll(
-        ".hamburger-line",
-      );
+      const lines = hamburger.querySelectorAll(".hamburger-line");
 
       if (nextState) {
         gsap.to(lines[0], {
@@ -459,13 +426,13 @@ const PillNav: React.FC<PillNavProps> = ({
     ["--pill-text"]: resolvedPillTextColor,
 
     // Overall navigation height
-    ["--nav-h"]: "55px",
+    ["--nav-h"]: splash ? "42px" : "55px",
 
     // Horizontal spacing inside each pill
     ["--pill-pad-x"]: "18px",
 
     // Black space between white pills
-    ["--pill-gap"]: "3px",
+    ["--pill-gap"]: pillGap,
   } as CSSProperties;
 
   return (
@@ -486,12 +453,7 @@ const PillNav: React.FC<PillNavProps> = ({
             href={items[0]?.href || "#"}
             aria-label="Home"
             onMouseEnter={handleLogoEnter}
-            onClick={(event) =>
-              handleNavigation(
-                event,
-                items[0]?.href || "#",
-              )
-            }
+            onClick={(event) => handleNavigation(event, items[0]?.href || "#")}
             className={[
               "inline-flex items-center justify-center",
               "overflow-hidden rounded-full p-2",
@@ -514,19 +476,18 @@ const PillNav: React.FC<PillNavProps> = ({
         <div
           ref={navItemsRef}
           className={[
-            "relative ml-2 hidden items-center",
-            "overflow-hidden rounded-full md:flex",
+            "relative hidden items-center md:flex",
+            splash ? "overflow-visible" : "ml-2 overflow-hidden rounded-full",
           ].join(" ")}
           style={{
             height: "var(--nav-h)",
-            background: "var(--base, #111111)",
+            background: trackColor ?? "var(--base, #111111)",
           }}
         >
           <ul
-            role="menubar"
             className={[
               "m-0 flex h-full list-none",
-              "items-stretch p-[3px]",
+              splash ? "items-stretch p-0" : "items-stretch p-[3px]",
             ].join(" ")}
             style={{
               gap: "var(--pill-gap)",
@@ -537,29 +498,24 @@ const PillNav: React.FC<PillNavProps> = ({
                * activeHref is used only for accessibility.
                * It does not change the visual background.
                */
-              const isCurrent =
-                activeHref === item.href;
+              const isCurrent = activeHref === item.href;
 
               const pillStyle: CSSProperties = {
                 // Every pill stays white by default.
-                background:
-                  "var(--pill-bg, #ffffff)",
+                background: "var(--pill-bg, #ffffff)",
 
                 // Every pill has dark text by default.
-                color:
-                  "var(--pill-text, #111111)",
+                color: "var(--pill-text, #111111)",
 
-                paddingLeft:
-                  "var(--pill-pad-x)",
+                paddingLeft: "var(--pill-pad-x)",
 
-                paddingRight:
-                  "var(--pill-pad-x)",
+                paddingRight: "var(--pill-pad-x)",
               };
 
               const pillClasses = [
                 "relative inline-flex h-full",
                 "items-center justify-center",
-                "overflow-hidden rounded-full",
+                splash ? "overflow-visible rounded-full" : "overflow-hidden rounded-full",
                 "box-border cursor-pointer",
                 "whitespace-nowrap no-underline",
                 "px-0 font-medium",
@@ -575,90 +531,74 @@ const PillNav: React.FC<PillNavProps> = ({
               ].join(" ");
 
               return (
-                <li
-                  key={item.href}
-                  role="none"
-                  className="flex h-full"
-                >
+                <li key={item.href} className="flex h-full">
                   <a
-                    role="menuitem"
                     href={item.href}
                     className={pillClasses}
                     style={pillStyle}
-                    aria-label={
-                      item.ariaLabel || item.label
-                    }
-                    aria-current={
-                      isCurrent ? "page" : undefined
-                    }
-                    onMouseEnter={() =>
-                      handleEnter(index)
-                    }
-                    onMouseLeave={() =>
-                      handleLeave(index)
-                    }
-                    onFocus={() =>
-                      handleEnter(index)
-                    }
-                    onBlur={() =>
-                      handleLeave(index)
-                    }
-                    onClick={(event) =>
-                      handleNavigation(
-                        event,
-                        item.href,
-                      )
-                    }
+                    aria-label={item.ariaLabel || item.label}
+                    aria-current={isCurrent ? "page" : undefined}
+                    onMouseEnter={splash ? undefined : () => handleEnter(index)}
+                    onMouseLeave={splash ? undefined : () => handleLeave(index)}
+                    onFocus={splash ? undefined : () => handleEnter(index)}
+                    onBlur={splash ? undefined : () => handleLeave(index)}
+                    onClick={(event) => handleNavigation(event, item.href)}
                   >
                     {/* Black circular hover fill */}
-                    <span
-                      ref={(element) => {
-                        circleRefs.current[index] =
-                          element;
-                      }}
-                      aria-hidden="true"
-                      className={[
-                        "pointer-events-none absolute",
-                        "bottom-0 left-1/2 z-[1]",
-                        "block rounded-full",
-                      ].join(" ")}
-                      style={{
-                        background:
-                          "var(--base, #111111)",
-                        willChange: "transform",
-                      }}
-                    />
-
-                    <span className="relative z-[2] inline-block overflow-hidden leading-none">
-                      {/* Default black text */}
+                    {!splash && (
                       <span
-                        className="pill-label relative z-[2] inline-block leading-none"
-                        style={{
-                          willChange:
-                            "transform, opacity",
+                        ref={(element) => {
+                          circleRefs.current[index] = element;
                         }}
-                      >
-                        {item.label}
-                      </span>
-
-                      {/* White text shown only on hover */}
-                      <span
                         aria-hidden="true"
                         className={[
-                          "pill-label-hover absolute",
-                          "left-0 top-0 z-[3]",
-                          "inline-block leading-none",
+                          "pointer-events-none absolute",
+                          "bottom-0 left-1/2 z-[1]",
+                          "block rounded-full",
                         ].join(" ")}
                         style={{
-                          color:
-                            "var(--hover-text, #ffffff)",
-                          willChange:
-                            "transform, opacity",
+                          background: "var(--base, #111111)",
+                          willChange: "transform",
                         }}
-                      >
-                        {item.label}
+                      />
+                    )}
+
+                    {splash ? (
+                      <>
+                        <PillSplash reducedMotion={prefersReducedMotion} />
+                        <span data-pill-label className="relative z-[2] inline-block leading-none">
+                          {item.label}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="relative z-[2] inline-block overflow-hidden leading-none">
+                        {/* Default black text */}
+                        <span
+                          className="pill-label relative z-[2] inline-block leading-none"
+                          style={{
+                            willChange: "transform, opacity",
+                          }}
+                        >
+                          {item.label}
+                        </span>
+
+                        {/* White text shown only on hover */}
+                        <span
+                          aria-hidden="true"
+                          className={[
+                            "pill-label-hover absolute",
+                            "left-0 top-0 z-[3]",
+                            "inline-block leading-none",
+                          ].join(" ")}
+                          style={{
+                            color: "var(--hover-text, #ffffff)",
+                            willChange: "transform, opacity",
+                          }}
+                        >
+                          {item.label}
+                        </span>
                       </span>
-                    </span>
+                    )}
                   </a>
                 </li>
               );
@@ -687,16 +627,14 @@ const PillNav: React.FC<PillNavProps> = ({
           <span
             className="hamburger-line h-0.5 w-4 rounded"
             style={{
-              background:
-                "var(--pill-bg, #ffffff)",
+              background: "var(--pill-bg, #ffffff)",
             }}
           />
 
           <span
             className="hamburger-line h-0.5 w-4 rounded"
             style={{
-              background:
-                "var(--pill-bg, #ffffff)",
+              background: "var(--pill-bg, #ffffff)",
             }}
           />
         </button>
@@ -727,46 +665,33 @@ const PillNav: React.FC<PillNavProps> = ({
                   "transition-colors duration-200",
                 ].join(" ")}
                 style={{
-                  background:
-                    "var(--pill-bg, #ffffff)",
-                  color:
-                    "var(--pill-text, #111111)",
+                  background: "var(--pill-bg, #ffffff)",
+                  color: "var(--pill-text, #111111)",
                 }}
                 onMouseEnter={(event) => {
-                  event.currentTarget.style.background =
-                    "var(--base, #111111)";
+                  event.currentTarget.style.background = "var(--base, #111111)";
 
-                  event.currentTarget.style.color =
-                    "var(--hover-text, #ffffff)";
+                  event.currentTarget.style.color = "var(--hover-text, #ffffff)";
                 }}
                 onMouseLeave={(event) => {
-                  event.currentTarget.style.background =
-                    "var(--pill-bg, #ffffff)";
+                  event.currentTarget.style.background = "var(--pill-bg, #ffffff)";
 
-                  event.currentTarget.style.color =
-                    "var(--pill-text, #111111)";
+                  event.currentTarget.style.color = "var(--pill-text, #111111)";
                 }}
                 onFocus={(event) => {
-                  event.currentTarget.style.background =
-                    "var(--base, #111111)";
+                  event.currentTarget.style.background = "var(--base, #111111)";
 
-                  event.currentTarget.style.color =
-                    "var(--hover-text, #ffffff)";
+                  event.currentTarget.style.color = "var(--hover-text, #ffffff)";
                 }}
                 onBlur={(event) => {
-                  event.currentTarget.style.background =
-                    "var(--pill-bg, #ffffff)";
+                  event.currentTarget.style.background = "var(--pill-bg, #ffffff)";
 
-                  event.currentTarget.style.color =
-                    "var(--pill-text, #111111)";
+                  event.currentTarget.style.color = "var(--pill-text, #111111)";
                 }}
                 onClick={(event) => {
                   setIsMobileMenuOpen(false);
 
-                  handleNavigation(
-                    event,
-                    item.href,
-                  );
+                  handleNavigation(event, item.href);
                 }}
               >
                 {item.label}
