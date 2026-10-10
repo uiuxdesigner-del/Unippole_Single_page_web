@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { gsap } from "gsap";
 import { scrollToHash } from "@/hooks/useLenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -14,10 +14,53 @@ const headerNav = [
   { label: "Inventory", href: "#inventory" },
 ];
 const sectionIds = ["top", "about", "inventory"];
+type HeaderTheme = "dark" | "light";
+const themeVars: Record<HeaderTheme, Record<string, string | number>> = {
+  dark: {
+    "--hdr-fg": "rgba(255,255,255,1)",
+    "--hdr-muted": "rgba(255,255,255,0.6)",
+    "--hdr-border": "rgba(255,255,255,0.15)",
+    "--hdr-divider": "rgba(255,255,255,0.25)",
+    "--hdr-lens-a": "rgba(255,255,255,0.1)",
+    "--hdr-lens-b": "rgba(255,255,255,0.03)",
+    "--hdr-lens-border": "rgba(255,255,255,0.15)",
+    "--hdr-edge": "rgba(255,255,255,0.24)",
+    "--hdr-inset-b": "rgba(0,0,0,0.3)",
+    "--hdr-drop": "rgba(0,0,0,0.2)",
+    "--hdr-sheen": "rgba(255,255,255,0.3)",
+    "--hdr-chip-bg": "rgba(255,255,255,1)",
+    "--hdr-chip-fg": "rgba(0,0,0,1)",
+    "--hdr-lens-hi": "rgba(255,255,255,0.03)",
+    "--hdr-lens-sh": "rgba(0,0,0,0)",
+    "--hdr-lens-drop": "rgba(0,0,0,0.2)",
+    "--hdr-fill": 0,
+    "--hdr-logo-light": 0,
+  },
+  light: {
+    "--hdr-fg": "rgba(17,17,20,1)",
+    "--hdr-muted": "rgba(17,17,20,0.6)",
+    "--hdr-border": "rgba(255,255,255,0.7)",
+    "--hdr-divider": "rgba(17,17,20,0.15)",
+    "--hdr-lens-a": "rgba(17,17,20,0.025)",
+    "--hdr-lens-b": "rgba(17,17,20,0.06)",
+    "--hdr-lens-border": "rgba(255,255,255,0.8)",
+    "--hdr-edge": "rgba(255,255,255,1)",
+    "--hdr-inset-b": "rgba(17,17,20,0.09)",
+    "--hdr-drop": "rgba(17,17,20,0.14)",
+    "--hdr-sheen": "rgba(255,255,255,0)",
+    "--hdr-chip-bg": "rgba(241,241,243,1)",
+    "--hdr-chip-fg": "rgba(17,17,20,1)",
+    "--hdr-lens-hi": "rgba(255,255,255,1)",
+    "--hdr-lens-sh": "rgba(17,17,20,0.07)",
+    "--hdr-lens-drop": "rgba(17,17,20,0.1)",
+    "--hdr-fill": 1,
+    "--hdr-logo-light": 1,
+  },
+};
 const focusStyle =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-4";
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--hdr-fg)] focus-visible:outline-offset-4";
 
-function IslandFrame({ compact }: { compact: boolean }) {
+function IslandFrame({ compact, grip = true }: { compact: boolean; grip?: boolean }) {
   const frame = useRef<HTMLDivElement>(null);
   const sweep = useRef<HTMLSpanElement>(null);
   const reduced = useReducedMotion();
@@ -57,18 +100,37 @@ function IslandFrame({ compact }: { compact: boolean }) {
       ref={frame}
       data-island-frame
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] border border-white/20"
+      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px] border"
       style={{
-        background:
-          "linear-gradient(135deg,rgba(48,54,63,.92),rgba(17,21,27,.94) 55%,rgba(38,44,53,.92))",
+        borderColor: "var(--hdr-border)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,.24), inset 0 -1px 0 rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.2)",
+          "inset 0 1px 0 var(--hdr-edge), inset 0 -1px 0 var(--hdr-inset-b), 0 12px 32px var(--hdr-drop), 0 1px 2px var(--hdr-lens-sh)",
       }}
     >
-      <span className="absolute inset-x-7 top-[3px] h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-      <span className="absolute bottom-[4px] left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-slate-400/30" />
+      <span
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(135deg,rgba(48,54,63,.92),rgba(17,21,27,.94) 55%,rgba(38,44,53,.92))",
+          opacity: "clamp(0, calc((1 - var(--hdr-fill)) * 6), 1)",
+        }}
+      />
+      <span
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(180deg,#ffffff,#f3f3f6)",
+          opacity: "var(--hdr-fill)",
+        }}
+      />
+      <span
+        className="absolute inset-x-7 top-[3px] h-px"
+        style={{ background: "linear-gradient(90deg,transparent,var(--hdr-sheen),transparent)" }}
+      />
+      {grip && (
+        <span className="absolute bottom-[4px] left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-slate-400/30" />
+      )}
       <span
         ref={sweep}
         className="absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0"
@@ -87,6 +149,8 @@ function IslandNavigation({
   const nav = useRef<HTMLElement>(null);
   const highlight = useRef<HTMLSpanElement>(null);
   const reduced = useReducedMotion();
+  const activeRef = useRef(activeHref);
+  const selectRef = useRef<(() => void) | null>(null);
   useEffect(() => {
     const root = nav.current,
       light = highlight.current;
@@ -98,16 +162,8 @@ function IslandNavigation({
     let hovered = -1,
       focused = -1;
     const select = () => {
-      const index = hovered >= 0 ? hovered : focused;
-      shapes.forEach((shape, i) => {
-        surfaces[i]?.kill();
-        surfaces[i] = gsap.to(shape, {
-          scaleX: i === index ? 1.018 : 1,
-          scaleY: i === index ? 1.08 : 1,
-          duration: reduced ? 0 : 0.38,
-          ease: "power3.out",
-        });
-      });
+      const activeIndex = headerNav.findIndex((item) => item.href === activeRef.current);
+      const index = hovered >= 0 ? hovered : focused >= 0 ? focused : activeIndex;
       slide?.kill();
       if (index < 0) {
         slide = gsap.to(light, {
@@ -119,8 +175,8 @@ function IslandNavigation({
       } else {
         const link = links[index];
         slide = gsap.to(light, {
-          x: link.offsetLeft + 2,
-          width: link.offsetWidth - 4,
+          x: link.offsetLeft,
+          width: link.offsetWidth,
           opacity: 1,
           scaleY: 1,
           duration: reduced ? 0 : 0.42,
@@ -177,11 +233,12 @@ function IslandNavigation({
         link.removeEventListener("click", press);
       };
     });
-    const resize = new ResizeObserver(() => {
-      if (hovered >= 0 || focused >= 0) select();
-    });
+    const resize = new ResizeObserver(() => select());
     resize.observe(root);
+    selectRef.current = select;
+    select();
     return () => {
+      selectRef.current = null;
       removers.forEach((remove) => remove());
       resize.disconnect();
       slide?.kill();
@@ -190,16 +247,22 @@ function IslandNavigation({
       gsap.set(light, { opacity: 0 });
     };
   }, [reduced]);
+  useEffect(() => {
+    activeRef.current = activeHref;
+    selectRef.current?.();
+  }, [activeHref]);
   return (
-    <nav ref={nav} aria-label="Primary navigation" className="relative flex items-center gap-2">
+    <nav ref={nav} aria-label="Primary navigation" className="relative flex items-center gap-1">
       <span
         ref={highlight}
         data-island-highlight
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[2px] left-0 z-[1] h-[46px] rounded-full border border-white/80 opacity-0"
+        className="pointer-events-none absolute left-0 top-0 z-[1] h-11 rounded-[14px] border opacity-0"
         style={{
-          background: "linear-gradient(120deg,#fff,#e0e5ec 55%,#f9fafb)",
-          boxShadow: "0 3px 12px rgba(0,0,0,.14)",
+          borderColor: "var(--hdr-lens-border)",
+          background: "linear-gradient(165deg,var(--hdr-lens-a),var(--hdr-lens-b))",
+          boxShadow:
+            "inset 0 1px 0 var(--hdr-lens-hi), inset 0 -1px 0 var(--hdr-lens-sh), 0 3px 8px var(--hdr-lens-drop)",
         }}
       />
       {headerNav.map((item) => (
@@ -208,16 +271,20 @@ function IslandNavigation({
           href={item.href}
           aria-current={activeHref === item.href ? "page" : undefined}
           onClick={(event) => navigate(event, item.href)}
-          className={`relative inline-flex h-[42px] items-center justify-center rounded-full px-[18px] text-[15px] font-medium leading-none text-black xl:text-base ${focusStyle}`}
+          className={`group relative inline-flex h-11 items-center justify-center rounded-[14px] px-[18px] text-[14px] font-medium leading-none transition-colors duration-300 hover:text-[color:var(--hdr-fg)] ${
+            activeHref === item.href ? "text-[color:var(--hdr-fg)]" : "text-[color:var(--hdr-muted)]"
+          } ${focusStyle}`}
         >
-          <span
-            data-pill-surface
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-full bg-white"
-          />
+          <span data-pill-surface aria-hidden="true" className="pointer-events-none absolute inset-0" />
           <span data-pill-label className="pointer-events-none relative z-[2]">
             {item.label}
           </span>
+          <span
+            aria-hidden="true"
+            className={`pointer-events-none absolute bottom-[6px] left-1/2 z-[2] h-[2px] w-[9px] -translate-x-1/2 rounded-full bg-adinn-red transition-all duration-300 ${
+              activeHref === item.href ? "scale-x-100 opacity-100" : "scale-x-30 opacity-0"
+            }`}
+          />
         </a>
       ))}
     </nav>
@@ -248,6 +315,47 @@ export function Header() {
     });
     introShown.current = true;
     return () => context.revert();
+  }, [reduced]);
+
+  useEffect(() => {
+    const root = header.current;
+    if (!root) return;
+    let theme: HeaderTheme | null = null;
+    const apply = (next: HeaderTheme) => {
+      if (next === theme) return;
+      const first = theme === null;
+      theme = next;
+      gsap.to(root, {
+        ...themeVars[next],
+        duration: first || reduced ? 0 : 0.6,
+        ease: "power2.inOut",
+        overwrite: "auto",
+      });
+    };
+    let io: IntersectionObserver | null = null;
+    let mo: MutationObserver | null = null;
+    const attach = () => {
+      const hero = document.querySelector<HTMLElement>('[data-header-theme="dark"]');
+      if (!hero) return false;
+      // Dark while the hero still overlaps the strip occupied by the header.
+      io = new IntersectionObserver(
+        ([entry]) => apply(entry.isIntersecting ? "dark" : "light"),
+        { rootMargin: "-88px 0px 0px 0px", threshold: 0 },
+      );
+      io.observe(hero);
+      return true;
+    };
+    if (!attach()) {
+      mo = new MutationObserver(() => {
+        if (attach()) mo?.disconnect();
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
+    return () => {
+      io?.disconnect();
+      mo?.disconnect();
+      gsap.killTweensOf(root);
+    };
   }, [reduced]);
 
   useEffect(() => {
@@ -330,44 +438,30 @@ export function Header() {
   }, [open]);
 
   useEffect(() => {
-    const elements = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((element): element is HTMLElement => element !== null);
-
-    if (!elements.length) return;
-
-    const intersecting = new Set<string>();
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const id = entry.target.id;
-
-          if (entry.isIntersecting) {
-            intersecting.add(id);
-          } else {
-            intersecting.delete(id);
-          }
-        });
-
-        const activeId = [...sectionIds].reverse().find((id) => intersecting.has(id));
-
-        if (activeId) {
-          setActiveHref(`#${activeId}`);
-        }
-      },
-      {
-        rootMargin: "-45% 0px -50% 0px",
-        threshold: 0,
-      },
-    );
-
-    elements.forEach((element) => {
-      observer.observe(element);
-    });
-
+    // Position-based: the last section whose top has passed the probe line stays
+    // active until the next one reaches it ("top" wraps the page, so it is only
+    // the fallback above About).
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const probe = window.innerHeight * 0.4;
+      let active = sectionIds[0];
+      for (const id of sectionIds.slice(1)) {
+        const element = document.getElementById(id);
+        if (element && element.getBoundingClientRect().top <= probe) active = id;
+      }
+      setActiveHref(`#${active}`);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
     return () => {
-      observer.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
     };
   }, []);
 
@@ -390,39 +484,62 @@ export function Header() {
     scrollToHash("#contact");
   };
   const logo = (
-    <Image
-      src="/AdinnLogoWhite.svg"
-      alt="ADINN"
-      width={130}
-      height={42}
-      priority
-      className="h-9 w-auto object-contain"
-    />
+    <span className="relative block">
+      <Image
+        src="/AdinnLogoWhite.svg"
+        alt="ADINN"
+        width={130}
+        height={42}
+        priority
+        className="h-9 w-auto object-contain lg:h-[38px]"
+        style={{ opacity: "clamp(0, calc(1 - var(--hdr-logo-light) * 2), 1)" }}
+      />
+      <Image
+        src="/AdinnLogo.svg"
+        alt=""
+        aria-hidden="true"
+        width={130}
+        height={42}
+        priority
+        className="absolute inset-0 h-full w-full object-contain"
+        style={{ opacity: "clamp(0, calc(var(--hdr-logo-light) * 2 - 1), 1)" }}
+      />
+    </span>
   );
 
   return (
-    <header ref={header} className="pointer-events-none fixed inset-x-0 top-0 z-[100]">
-      <div className="container-x flex justify-center pt-3">
+    <header ref={header} className="pointer-events-none fixed inset-x-0 top-0 z-[100] [--hdr-border:rgba(255,255,255,0.15)] [--hdr-chip-bg:rgba(255,255,255,1)] [--hdr-chip-fg:rgba(0,0,0,1)] [--hdr-divider:rgba(255,255,255,0.25)] [--hdr-drop:rgba(0,0,0,0.2)] [--hdr-edge:rgba(255,255,255,0.24)] [--hdr-fg:rgba(255,255,255,1)] [--hdr-fill:0] [--hdr-lens-hi:rgba(255,255,255,0.03)] [--hdr-lens-sh:rgba(0,0,0,0)] [--hdr-lens-drop:rgba(0,0,0,0.2)] [--hdr-inset-b:rgba(0,0,0,0.3)] [--hdr-lens-a:rgba(255,255,255,0.1)] [--hdr-lens-b:rgba(255,255,255,0.03)] [--hdr-lens-border:rgba(255,255,255,0.15)] [--hdr-logo-light:0] [--hdr-muted:rgba(255,255,255,0.6)] [--hdr-sheen:rgba(255,255,255,0.3)]">
+      <div className="container-x flex justify-center pt-3 lg:pt-5">
         <div
           data-desktop-island
-          className="pointer-events-auto relative isolate hidden h-[60px] w-full max-w-[720px] grid-cols-[1fr_auto_1fr] items-center gap-5 px-6 lg:grid"
+          className="pointer-events-auto relative isolate hidden h-[68px] w-full max-w-[720px] grid-cols-[1fr_auto_1fr] items-center gap-4 pl-6 pr-3 lg:grid"
         >
-          <IslandFrame compact={scrolled} />
-          <a
-            href="#top"
-            onClick={(event) => navigate(event, "#top")}
-            aria-label="ADINN Home"
-            className={`relative justify-self-start rounded-sm ${focusStyle}`}
-          >
-            {logo}
-          </a>
+          <IslandFrame compact={scrolled} grip={false} />
+          <div className="relative flex items-center gap-5 justify-self-start">
+            <a
+              href="#top"
+              onClick={(event) => navigate(event, "#top")}
+              aria-label="ADINN Home"
+              className={`rounded-sm ${focusStyle}`}
+            >
+              {logo}
+            </a>
+            <span
+              aria-hidden="true"
+              className="h-7 w-px shrink-0"
+              style={{ background: "linear-gradient(transparent,var(--hdr-divider),transparent)" }}
+            />
+          </div>
           <IslandNavigation activeHref={activeHref} navigate={navigate} />
           <BrandButton
             onClick={enquire}
-            className="relative justify-self-end !rounded-full px-5"
+            className="group relative h-12 shrink-0 justify-self-end gap-4 !rounded-2xl border border-white/15 pl-5 pr-2 text-[13px] font-semibold"
             size="md"
           >
             Enquire Now
+            <span className="flex h-[30px] w-[30px] items-center justify-center rounded-[11px] border border-white/15 bg-white/10 transition-transform duration-300 group-hover:-translate-y-px group-hover:translate-x-px">
+              <ArrowUpRight size={16} strokeWidth={1.7} aria-hidden="true" />
+            </span>
           </BrandButton>
         </div>
         <div
@@ -450,7 +567,7 @@ export function Header() {
                 keyboardOpen.current = event.detail === 0;
                 setOpen((value) => !value);
               }}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-black ${focusStyle}`}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--hdr-chip-bg)] text-[color:var(--hdr-chip-fg)] ${focusStyle}`}
             >
               {open ? <X size={18} strokeWidth={1.75} /> : <Menu size={18} strokeWidth={1.75} />}
             </button>
@@ -471,7 +588,7 @@ export function Header() {
                     href={item.href}
                     onClick={(event) => navigate(event, item.href)}
                     aria-current={activeHref === item.href ? "page" : undefined}
-                    className={`flex h-11 items-center justify-center rounded-full bg-white text-[15px] font-medium text-black ${focusStyle}`}
+                    className={`flex h-11 items-center justify-center rounded-full bg-[color:var(--hdr-chip-bg)] text-[15px] font-medium text-[color:var(--hdr-chip-fg)] ${focusStyle}`}
                   >
                     {item.label}
                   </a>

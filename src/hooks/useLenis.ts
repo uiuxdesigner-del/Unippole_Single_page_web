@@ -20,10 +20,25 @@ export function unlockScroll() {
     if (typeof document !== "undefined") document.body.style.overflow = "";
   }
 }
+/**
+ * Set by the 3D hero while mounted. Navigation whose path crosses the hero's
+ * scroll track is handed to it, so the page moves directly to the target
+ * instead of replaying the city-by-city camera sequence. Returns false when
+ * the hero is not involved.
+ */
+type HeroNavigator = (destination: number) => boolean;
+let heroNavigator: HeroNavigator | null = null;
+export function setHeroNavigator(navigator: HeroNavigator | null) { heroNavigator = navigator; }
+
 export function scrollToHash(hash: string) {
   if (!hash) return;
   const id = hash.replace(/^#/, "");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (heroNavigator) {
+    const target = id === "top" ? null : document.getElementById(id);
+    const destination = id === "top" ? 0 : target ? window.scrollY + target.getBoundingClientRect().top - 72 : null;
+    if (destination !== null && heroNavigator(Math.max(0, destination))) return;
+  }
   if (id === "top") {
     if (lenisInstance) lenisInstance.scrollTo(0, { immediate: reducedMotion });
     else window.scrollTo({ top: 0, behavior: reducedMotion ? "instant" : "smooth" });

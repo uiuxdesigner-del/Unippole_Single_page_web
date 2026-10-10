@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { useTexture } from "@react-three/drei";
+import { preload } from "react-dom";
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import {
   AdditiveBlending,
   BackSide,
@@ -10,13 +10,14 @@ import {
   CanvasTexture,
   Color,
   Float32BufferAttribute,
+  ImageBitmapLoader,
   LinearFilter,
   MathUtils,
   type Mesh,
   NoColorSpace,
   ShaderMaterial,
   SRGBColorSpace,
-  type Texture,
+  Texture,
   Vector3,
   Vector4,
 } from "three";
@@ -249,15 +250,54 @@ const ATMOSPHERE_FRAGMENT = /* glsl */ `
   }
 `;
 
-// Stable callback (module scope) so drei runs it once per load, not per render.
-function prepareTextures(loaded: Texture | Texture[]) {
-  const list = Array.isArray(loaded) ? loaded : [loaded];
-  list.forEach((texture, index) => {
-    // Index 2 is the cloud mask (data, not colour).
-    texture.colorSpace = index === 2 ? NoColorSpace : SRGBColorSpace;
-    texture.anisotropy = 8;
-    texture.needsUpdate = true;
-  });
+/**
+ * The globe is revealed with the 2K maps (+ the full-resolution South India
+ * crops used at city range). On desktop the 4K maps are fetched and decoded
+ * in the background and swapped in after the entrance animation.
+ */
+const INITIAL_TEXTURES = [
+  TEXTURE_SETS.low.day,
+  TEXTURE_SETS.low.night,
+  TEXTURE_SETS.low.clouds,
+  REGION.day,
+  REGION.night,
+];
+/** Earliest 4K upload after mount (ms): keeps GPU uploads out of the entrance. */
+const UPGRADE_DELAY = 2000;
+/** The camera must have been still this long (ms) before a 4K upload runs. */
+const UPGRADE_IDLE = 400;
+
+type PendingUpgrade = {
+  textures: Texture[];
+  uploaded: number;
+  earliest: number;
+  idleSince: number;
+  swapped: boolean;
+};
+
+/** Start the initial texture requests from the server-rendered <head>. */
+export function preloadEarthTextures() {
+  // Matches ImageBitmapLoader's fetch (cors, same-origin credentials).
+  INITIAL_TEXTURES.forEach((href) => preload(href, { as: "fetch", crossOrigin: "anonymous" }));
+}
+
+/**
+ * ImageBitmaps are decoded off the main thread, so the GPU upload no longer
+ * includes a synchronous JPEG decode. Bitmaps ignore texture.flipY, so the
+ * flip happens at decode time.
+ */
+function configureBitmapLoader(loader: ImageBitmapLoader) {
+  loader.setOptions({ imageOrientation: "flipY", premultiplyAlpha: "none" });
+}
+
+function makeTexture(bitmap: ImageBitmap, index: number) {
+  const texture = new Texture(bitmap);
+  texture.flipY = false;
+  // Index 2 is the cloud mask (data, not colour).
+  texture.colorSpace = index === 2 ? NoColorSpace : SRGBColorSpace;
+  texture.anisotropy = 8;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 function useTextureTier() {
@@ -271,23 +311,28 @@ function useTextureTier() {
 export function EarthSurface({
   cloudOpacityRef,
   nearRef,
+  cameraBusyRef,
 }: {
   cloudOpacityRef: React.RefObject<number>;
   /** 0 when high above the planet, 1 at city close-up range. */
   nearRef: React.RefObject<number>;
+  /** True while the camera or page is moving (written by the camera rig). */
+  cameraBusyRef: React.RefObject<boolean>;
 }) {
   const set = useTextureTier();
   const cloudMesh = useRef<Mesh>(null);
   const earthMesh = useRef<Mesh>(null);
   const reduced = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
 
-  const [day, night, clouds, regionDay, regionNight] = useTexture([
-    set.day,
-    set.night,
-    set.clouds,
-    REGION.day,
-    REGION.night,
-  ], prepareTextures);
+  const gl = useThree((state) => state.gl);
+
+  // useLoader caches per URL: no repeated fetch/decode on remount.
+  const bitmaps = useLoader(ImageBitmapLoader, INITIAL_TEXTURES, configureBitmapLoader) as ImageBitmap[];
+  const [day, night, clouds, regionDay, regionNight] = useMemo(() => bitmaps.map(makeTexture), [bitmaps]);
+  useEffect(
+    () => () => [day, night, clouds, regionDay, regionNight].forEach((texture) => texture.dispose()),
+    [day, night, clouds, regionDay, regionNight]
+  );
 
   const earthMaterial = useMemo(
     () =>
@@ -333,7 +378,67 @@ export function EarthSurface({
     [earthMaterial, cloudMaterial]
   );
 
+  // Desktop: background 4K upgrade. Fetch + decode start now (off-thread);
+  // GPU uploads happen in the render loop below, one texture per frame and
+  // only while the camera is idle, then all three are swapped in together.
+  const upgradeRef = useRef<PendingUpgrade | null>(null);
+  useEffect(() => {
+    if (set !== TEXTURE_SETS.high) return;
+    let cancelled = false;
+    const loader = new ImageBitmapLoader();
+    configureBitmapLoader(loader);
+    const earliest = performance.now() + UPGRADE_DELAY;
+
+    Promise.all([set.day, set.night, set.clouds].map((url) => loader.loadAsync(url)))
+      .then((list) => {
+        if (cancelled) {
+          list.forEach((bitmap) => bitmap.close());
+          return;
+        }
+        upgradeRef.current = { textures: list.map(makeTexture), uploaded: 0, earliest, idleSince: 0, swapped: false };
+      })
+      .catch(() => undefined); // keep the 2K maps
+
+    return () => {
+      cancelled = true;
+      const upgrade = upgradeRef.current;
+      upgradeRef.current = null;
+      if (!upgrade) return;
+      if (upgrade.swapped) {
+        earthMaterial.uniforms.uDay.value = day;
+        earthMaterial.uniforms.uNight.value = night;
+        cloudMaterial.uniforms.uClouds.value = clouds;
+      }
+      upgrade.textures.forEach((texture) => texture.dispose());
+    };
+  }, [set, earthMaterial, cloudMaterial, day, night, clouds]);
+
   useFrame((_, delta) => {
+    const upgrade = upgradeRef.current;
+    if (upgrade && !upgrade.swapped) {
+      const now = performance.now();
+      if (now < upgrade.earliest || cameraBusyRef.current) {
+        upgrade.idleSince = 0;
+      } else if (!upgrade.idleSince) {
+        upgrade.idleSince = now;
+      } else if (now - upgrade.idleSince >= UPGRADE_IDLE) {
+        if (upgrade.uploaded < upgrade.textures.length) {
+          gl.initTexture(upgrade.textures[upgrade.uploaded]);
+          upgrade.uploaded += 1;
+        } else {
+          // Already resident on the GPU: swapping is just a uniform change.
+          const earthUniforms = (earthMesh.current?.material as ShaderMaterial | undefined)?.uniforms;
+          const cloudUniforms = (cloudMesh.current?.material as ShaderMaterial | undefined)?.uniforms;
+          if (earthUniforms && cloudUniforms) {
+            earthUniforms.uDay.value = upgrade.textures[0];
+            earthUniforms.uNight.value = upgrade.textures[1];
+            cloudUniforms.uClouds.value = upgrade.textures[2];
+            upgrade.swapped = true;
+          }
+        }
+      }
+    }
+
     const earth = earthMesh.current?.material as ShaderMaterial | undefined;
     if (earth) earth.uniforms.uNear.value = nearRef.current ?? 0;
     const material = cloudMesh.current?.material as ShaderMaterial | undefined;
