@@ -7,7 +7,7 @@ import { gsap } from "gsap";
 import { scrollToHash } from "@/hooks/useLenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { BrandButton } from "@/components/ui/BrandButton";
-
+//demo commit
 const headerNav = [
   { label: "Home", href: "#top" },
   { label: "About", href: "#about" },
