@@ -63,6 +63,13 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Header-link glide: hold every running CSS animation so sections stay static. */
+html.is-navigating main *,
+html.is-navigating main *::before,
+html.is-navigating main *::after {
+  animation-play-state: paused !important;
+}
+
 @layer base {
   *,
   *::before,

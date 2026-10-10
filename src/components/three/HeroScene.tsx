@@ -27,7 +27,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { getLenis, setHeroNavigator } from "@/hooks/useLenis";
+import { getLenis, glideEasing, setHeroNavigator } from "@/hooks/useLenis";
 import {
   CITIES,
   CITY_HEADINGS,
@@ -713,7 +713,7 @@ export function HeroScene() {
     const navigate = (
       destination: number,
       enterStage = 0,
-      { duration = SKIP_DURATION, dimHero = false }: { duration?: number; dimHero?: boolean } = {}
+      { duration = SKIP_DURATION, dimHero = false, skipCards = false, onArrive }: { duration?: number; dimHero?: boolean; skipCards?: boolean; onArrive?: () => void } = {}
     ) => {
       if (skippingRef.current || locked()) return false;
       const bottom = heroBottom();
@@ -759,12 +759,13 @@ export function HeroScene() {
         // Off screen the overview stays rendered (no stale city on return).
         showCamera(entering ? enterStage : heroVisible ? stage : 0);
         ScrollTrigger.update();
+        onArrive?.();
       };
       const lenis = getLenis();
-      if (lenis && !reduced) {
+      if (lenis && !reduced && duration > 0) {
         lenis.scrollTo(destination, {
           duration,
-          easing: dimHero ? easePower2InOut : easeInOutSine,
+          easing: skipCards ? glideEasing(window.scrollY, destination) : dimHero ? easePower2InOut : easeInOutSine,
           force: true,
           lock: true,
           onComplete: done,
@@ -777,7 +778,7 @@ export function HeroScene() {
       }
       return true;
     };
-    setHeroNavigator((destination) => navigate(destination));
+    setHeroNavigator((destination, duration, onArrive) => navigate(destination, 0, { ...(duration !== undefined ? { duration } : {}), skipCards: true, onArrive }));
 
     const typesPosition = () => {
       const destinationElement = document.getElementById(SKIP_TARGET_ID);
@@ -815,7 +816,9 @@ export function HeroScene() {
       if (direction > 0 && stage === LAST_STAGE && heroInPlace()) return () => skipRef.current?.();
       if (direction < 0) {
         const types = typesPosition();
-        if (types !== null && Math.abs(window.scrollY - types) <= 2) return () => navigate(heroTop(), stage);
+        // Only from the first card: otherwise the gesture steps the cards back.
+        const firstCard = (document.getElementById(SKIP_TARGET_ID)?.dataset.stepIndex ?? "0") === "0";
+        if (types !== null && firstCard && Math.abs(window.scrollY - types) <= 2) return () => navigate(heroTop(), stage);
       }
       return null;
     };

@@ -4,7 +4,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useStepScroller } from "@/hooks/useStepScroller";
 
 type UnipoleType = {
   number: string;
@@ -162,7 +162,7 @@ const unipoleTypes: UnipoleType[] = [
 
 function UnipoleCard({ item }: { item: UnipoleType }) {
   return (
-    <div className="relative grid h-full min-h-[420px] grid-cols-1 overflow-hidden lg:grid-cols-[46%_54%]">
+    <div className="relative grid h-full min-h-[420px] grid-cols-1 grid-rows-[34%_1fr] overflow-hidden lg:grid-cols-[46%_54%] lg:grid-rows-none">
       {/* =====================================================
           LEFT SIDE BACKGROUND EFFECTS
          ===================================================== */}
@@ -179,7 +179,7 @@ function UnipoleCard({ item }: { item: UnipoleType }) {
         className="
           relative z-10
           flex h-full flex-col justify-center
-          px-6 py-7
+          px-6 py-4
           sm:px-9 sm:py-9
           lg:px-[clamp(2.75rem,4.8vw,5.25rem)]
           lg:py-[clamp(2.25rem,4.7vh,4.25rem)]
@@ -208,7 +208,7 @@ function UnipoleCard({ item }: { item: UnipoleType }) {
 
           <span
             className="
-              mt-10
+              mt-4
               inline-flex
               min-h-10
               items-center
@@ -235,8 +235,8 @@ function UnipoleCard({ item }: { item: UnipoleType }) {
 
          <h3
   className="
-    mt-6
-    text-[clamp(3.2rem,7.1vw,7.15rem)]
+    mt-3
+    text-[clamp(2.3rem,7.1vw,7.15rem)]
     font-normal
     leading-[1.20]
     tracking-[-0.065em]
@@ -257,11 +257,11 @@ function UnipoleCard({ item }: { item: UnipoleType }) {
 
           <p
   className="
-    mt-5
+    mt-3
     max-w-[510px]
-    text-sm
+    text-[13px]
     font-regular
-    leading-6
+    leading-5
     sm:mt-6
     sm:text-base
     sm:leading-7
@@ -281,7 +281,7 @@ function UnipoleCard({ item }: { item: UnipoleType }) {
           RIGHT IMAGE
          ===================================================== */}
 
-      <div className="relative z-10 hidden h-full min-h-0 overflow-hidden lg:block">
+      <div className="relative z-10 order-first block h-full min-h-0 overflow-hidden lg:order-none">
         <img
           src={item.image}
           alt={item.imageAlt}
@@ -335,6 +335,16 @@ export default function UnipoleTypesStack() {
 
   const cardsRef = useRef<Array<HTMLElement | null>>([]);
 
+  /* Maps the inner-scroll step value (0 = first card … n - 1 = last card) onto
+     the paused card timeline. The page itself never scrolls for these steps. */
+  const applyRef = useRef<((value: number) => void) | null>(null);
+
+  useStepScroller(sectionRef, {
+    count: unipoleTypes.length,
+    onValue: (value) => applyRef.current?.(value),
+    stepDuration: 1.1,
+  });
+
   useLayoutEffect(() => {
     const section = sectionRef.current;
     const deck = deckRef.current;
@@ -358,8 +368,6 @@ export default function UnipoleTypesStack() {
     if (prefersReducedMotion) {
       return;
     }
-
-    gsap.registerPlugin(ScrollTrigger);
 
     const context = gsap.context(() => {
       /* =====================================================
@@ -385,12 +393,6 @@ export default function UnipoleTypesStack() {
        */
 
       const EXIT_Y_PERCENT = -145;
-
-      /*
-       * Scroll length for each card transition.
-       */
-
-      const SCROLL_PER_CARD = 1.15;
 
       /*
        * Pause while card is fully visible.
@@ -435,32 +437,10 @@ export default function UnipoleTypesStack() {
          ===================================================== */
 
       const timeline = gsap.timeline({
+        paused: true,
+
         defaults: {
           ease: "none",
-        },
-
-        scrollTrigger: {
-          trigger: section,
-
-          start: "top top",
-
-          end: () =>
-            `+=${
-              window.innerHeight *
-              (cards.length * SCROLL_PER_CARD + 0.8)
-            }`,
-
-          pin: true,
-
-          pinSpacing: true,
-
-          scrub: 0.75,
-
-          anticipatePin: 1,
-
-          invalidateOnRefresh: true,
-
-          fastScrollEnd: false,
         },
       });
 
@@ -561,33 +541,28 @@ export default function UnipoleTypesStack() {
       }
 
       /* =====================================================
-         FINAL CARD HOLD
+         STEP VALUE -> TIMELINE TIME
          ===================================================== */
 
-      timeline.to(
-        {},
+      const stops = [0.18];
 
-        {
-          duration: 0.35,
-        },
-      );
+      for (let k = 0; k < cards.length - 1; k += 1) {
+        stops.push(timeline.labels[`transition-${k}`] + 1);
+      }
 
-      /* =====================================================
-         FINAL CARD EXIT
-         ===================================================== */
+      applyRef.current = (value: number) => {
+        const lower = Math.max(0, Math.min(stops.length - 1, Math.floor(value)));
+        const upper = Math.min(stops.length - 1, lower + 1);
+        const fraction = Math.max(0, Math.min(1, value - lower));
 
-      timeline.to(cards[cards.length - 1], {
-        yPercent: EXIT_Y_PERCENT,
+        timeline.time(stops[lower] + (stops[upper] - stops[lower]) * fraction);
+      };
 
-        rotationX: EXIT_ROTATION_X,
-
-        scale: EXIT_SCALE,
-
-        duration: 0.85,
-      });
+      timeline.time(stops[0]);
     }, section);
 
     return () => {
+      applyRef.current = null;
       context.revert();
     };
   }, []);
@@ -655,8 +630,10 @@ export default function UnipoleTypesStack() {
 
             <h2
               className="
-              mt-20
-              mb-10
+              mt-14
+              mb-5
+              sm:mt-20
+              sm:mb-10
                 max-w-3xl
                 text-[clamp(2.15rem,4.7vw,4.8rem)]
                 font-medium
@@ -679,7 +656,7 @@ export default function UnipoleTypesStack() {
           className={[
             "relative min-h-0 flex-1",
 
-            "h-[62vh] min-h-[420px]",
+            "h-[56svh] min-h-[340px] sm:h-[62vh] sm:min-h-[420px]",
 
             "sm:min-h-[450px]",
 

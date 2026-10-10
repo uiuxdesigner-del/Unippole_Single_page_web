@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type { MutableRefObject } from "react";
 
@@ -17,7 +18,7 @@ import {
 } from "@react-three/drei";
 import { useReducedMotion } from "framer-motion";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useStepScroller } from "@/hooks/useStepScroller";
 import * as THREE from "three";
 
 const INSTALLATION_STEPS = [
@@ -92,7 +93,30 @@ type Vec3 = [number, number, number];
 type ModelProps = {
   progressRef: MutableRefObject<number>;
   reducedMotion: boolean;
+  /** Phone layout: pulled-back fixed camera, no drag rotation (page keeps scrolling). */
+  compact?: boolean;
 };
+
+const MOBILE_QUERY = "(max-width: 767px)";
+
+function subscribeMobile(onChange: () => void) {
+  const query = window.matchMedia(MOBILE_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function useIsMobile() {
+  return useSyncExternalStore(
+    subscribeMobile,
+    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => false,
+  );
+}
+
+function FixedLook() {
+  useFrame(({ camera }) => camera.lookAt(0, 5.8, 0));
+  return null;
+}
 
 function useAdinnBoardTexture() {
   const [texture, setTexture] =
@@ -1516,11 +1540,11 @@ function RoadEnvironment() {
   );
 }
 
-function Scene({ progressRef, reducedMotion }: ModelProps) {
+function Scene({ progressRef, reducedMotion, compact = false }: ModelProps) {
   return (
     <>
       <color attach="background" args={["#07090a"]} />
-      <fog attach="fog" args={["#07090a", 24, 43]} />
+      <fog attach="fog" args={compact ? ["#07090a", 40, 78] : ["#07090a", 24, 43]} />
 
       <ambientLight intensity={1.05} />
       <hemisphereLight args={["#eef5ff", "#101214", 1.75]} />
@@ -1584,19 +1608,23 @@ function Scene({ progressRef, reducedMotion }: ModelProps) {
         color="#000000"
       />
 
-      <OrbitControls
-        makeDefault
-        target={[0, 5.8, 0]}
-        enablePan={false}
-        enableZoom={false}
-        enableDamping
-        dampingFactor={0.075}
-        rotateSpeed={0.4}
-        minPolarAngle={1.1}
-        maxPolarAngle={1.65}
-        minAzimuthAngle={-0.8}
-        maxAzimuthAngle={0.8}
-      />
+      {compact ? (
+        <FixedLook />
+      ) : (
+        <OrbitControls
+          makeDefault
+          target={[0, 5.8, 0]}
+          enablePan={false}
+          enableZoom={false}
+          enableDamping
+          dampingFactor={0.075}
+          rotateSpeed={0.4}
+          minPolarAngle={1.1}
+          maxPolarAngle={1.65}
+          minAzimuthAngle={-0.8}
+          maxAzimuthAngle={0.8}
+        />
+      )}
     </>
   );
 }
@@ -1604,27 +1632,78 @@ function Scene({ progressRef, reducedMotion }: ModelProps) {
 export function GroundToSkySection() {
   const reducedMotion = Boolean(useReducedMotion());
   const sectionRef = useRef<HTMLElement | null>(null);
-  const stepRefs = useRef<Array<HTMLElement | null>>([]);
   const titleRefs = useRef<Array<HTMLHeadingElement | null>>([]);
   const descriptionRefs = useRef<Array<HTMLParagraphElement | null>>([]);
   const numberRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const progressRef = useRef(0);
+  const goToRef = useRef<((index: number) => void) | null>(null);
+  const isMobile = useIsMobile();
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [sceneActive, setSceneActive] = useState(false);
 
-  const scrollToStep = useCallback(
-    (index: number) => {
-      const step = stepRefs.current[index];
-      if (!step) return;
+  const total = INSTALLATION_STEPS.length;
 
-      step.scrollIntoView({
-        behavior: reducedMotion ? "auto" : "smooth",
-        block: "center",
-      });
+  /* Drives the 3D build and the stage text from one continuous step value
+     (0 = first stage … total - 1 = last stage). Direct DOM writes only. */
+  const applyValue = useCallback(
+    (value: number) => {
+      progressRef.current = value / (total - 1);
+
+      for (let index = 0; index < total; index += 1) {
+        const delta = value - index;
+        const distance = Math.abs(delta);
+        const near = Math.max(0, 1 - distance);
+        const fade = Math.min(1, Math.max(0, 1.25 - distance * 1.25));
+        const shift = Math.max(-1, Math.min(1, delta));
+
+        const title = titleRefs.current[index];
+        const description = descriptionRefs.current[index];
+        const number = numberRefs.current[index];
+
+        if (title) {
+          gsap.set(title, {
+            scale: 0.58 + 0.42 * near,
+            y: -72 * shift,
+            opacity: fade,
+            transformOrigin: "left center",
+          });
+        }
+
+        if (description) {
+          gsap.set(description, {
+            y: -30 * shift,
+            opacity: Math.min(1, Math.max(0, 1 - distance * 2.2)) * 0.92,
+          });
+        }
+
+        if (number) {
+          gsap.set(number, {
+            scale: 0.72 + 0.48 * near,
+            opacity: 0.52 + 0.48 * near,
+            transformOrigin: "center center",
+          });
+        }
+      }
     },
-    [reducedMotion],
+    [total],
   );
+
+  /* Inner scroll, like the hero: the wheel / swipe / keys step through the
+     stages while this section fills the screen. The page scrollbar never
+     sees that length. */
+  useStepScroller(sectionRef, {
+    count: total,
+    stepDuration: 1.15,
+    instantWhenReduced: true,
+    controlRef: goToRef,
+    onValue: applyValue,
+    onIndex: setActiveIndex,
+  });
+
+  useEffect(() => {
+    applyValue(0);
+  }, [applyValue, isMobile]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -1640,222 +1719,17 @@ export function GroundToSkySection() {
 
     observer.observe(section);
     return () => observer.disconnect();
-  }, []);
+  }, [isMobile]);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    const firstStep = stepRefs.current[0];
-    const lastStep = stepRefs.current[INSTALLATION_STEPS.length - 1];
-
-    if (!section || !firstStep || !lastStep) return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const context = gsap.context(() => {
-      /* One continuous progress source keeps the 3D build synchronized
-         with the centre position of the first and final text stages. */
-      ScrollTrigger.create({
-        trigger: firstStep,
-        endTrigger: lastStep,
-        start: "center center",
-        end: "center center",
-        scrub: reducedMotion ? false : 0.45,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          progressRef.current = self.progress;
-
-          const nextIndex = Math.min(
-            INSTALLATION_STEPS.length - 1,
-            Math.max(
-              0,
-              Math.round(
-                self.progress * (INSTALLATION_STEPS.length - 1),
-              ),
-            ),
-          );
-
-          setActiveIndex((current) =>
-            current === nextIndex ? current : nextIndex,
-          );
-        },
-      });
-
-      const finalIndex = INSTALLATION_STEPS.length - 1;
-
-      stepRefs.current.forEach((step, index) => {
-        const title = titleRefs.current[index];
-        const description = descriptionRefs.current[index];
-        const number = numberRefs.current[index];
-
-        if (!step || !title || !description || !number) return;
-
-        const isFinalStage = index === finalIndex;
-
-        /*
-         * The final stage only grows in and then holds — GSAP scrub
-         * timelines freeze at their last keyframe once scroll passes
-         * `end`, so completing the timeline at "centre" and never adding
-         * a shrink phase keeps Stage 8 centred for the whole trailing
-         * hold area below it. Scrolling back up naturally re-enters the
-         * [start, end] window and reverses the tween, releasing it.
-         */
-        const timeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: step,
-            start: "top 86%",
-            end: isFinalStage ? "center center" : "bottom 18%",
-            scrub: reducedMotion ? false : 0.35,
-            invalidateOnRefresh: true,
-            onEnter: () => setActiveIndex(index),
-            onEnterBack: () => setActiveIndex(index),
-          },
-        });
-
-        if (isFinalStage) {
-          timeline.fromTo(
-            title,
-            {
-              scale: 0.58,
-              y: 72,
-              opacity: 0.28,
-              transformOrigin: "left center",
-            },
-            {
-              scale: 1,
-              y: 0,
-              opacity: 1,
-              duration: 1,
-              ease: "none",
-            },
-          );
-
-          timeline.fromTo(
-            description,
-            { y: 30, opacity: 0 },
-            {
-              y: 0,
-              opacity: 0.92,
-              duration: 1,
-              ease: "none",
-            },
-            0,
-          );
-
-          timeline.fromTo(
-            number,
-            {
-              scale: 0.72,
-              opacity: 0.58,
-              transformOrigin: "center center",
-            },
-            {
-              scale: 1.2,
-              opacity: 1,
-              duration: 1,
-              ease: "none",
-            },
-            0,
-          );
-        } else {
-          timeline
-            .fromTo(
-              title,
-              {
-                scale: 0.58,
-                y: 72,
-                opacity: 0.28,
-                transformOrigin: "left center",
-              },
-              {
-                scale: 1,
-                y: 0,
-                opacity: 1,
-                duration: 0.5,
-                ease: "none",
-              },
-            )
-            .to(title, {
-              scale: 0.58,
-              y: -72,
-              opacity: 0.24,
-              duration: 0.5,
-              ease: "none",
-            });
-
-          timeline
-            .fromTo(
-              description,
-              { y: 30, opacity: 0 },
-              {
-                y: 0,
-                opacity: 0.92,
-                duration: 0.5,
-                ease: "none",
-              },
-              0,
-            )
-            .to(
-              description,
-              {
-                y: -26,
-                opacity: 0,
-                duration: 0.5,
-                ease: "none",
-              },
-              0.5,
-            );
-
-          timeline
-            .fromTo(
-              number,
-              {
-                scale: 0.72,
-                opacity: 0.58,
-                transformOrigin: "center center",
-              },
-              {
-                scale: 1.2,
-                opacity: 1,
-                duration: 0.5,
-                ease: "none",
-              },
-              0,
-            )
-            .to(
-              number,
-              {
-                scale: 0.72,
-                opacity: 0.52,
-                duration: 0.5,
-                ease: "none",
-              },
-              0.5,
-            );
-        }
-      });
-    }, section);
-
-    const refreshId = window.requestAnimationFrame(() => {
-      progressRef.current = 0;
-      setActiveIndex(0);
-      ScrollTrigger.refresh();
-    });
-
-    return () => {
-      window.cancelAnimationFrame(refreshId);
-      context.revert();
-    };
-  }, [reducedMotion]);
-
-  return (
-    <section
-      ref={sectionRef}
-      id="installation"
-      className="relative overflow-clip bg-black py-20 text-white sm:py-24 lg:py-28"
-      aria-labelledby="installation-title"
-    >
-      <div className="container-x">
-        <header className="mx-auto max-w-4xl text-center">
+  if (isMobile) {
+    return (
+      <section
+        ref={sectionRef}
+        id="installation"
+        className="relative h-svh overflow-hidden bg-black text-white"
+        aria-labelledby="installation-title"
+      >
+        <header className="absolute inset-x-0 top-0 z-10 px-5 pt-24 text-center">
           <p className="text-[clamp(1.25rem,1.8vw,1.8rem)] font-medium leading-tight tracking-[-0.025em] text-white/80">
             From Ground to Sky
           </p>
@@ -1868,110 +1742,191 @@ export function GroundToSkySection() {
           </h2>
         </header>
 
-        <div className="mx-auto mt-20 grid max-w-[1520px] items-start gap-12 lg:mt-28 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.95fr)] lg:gap-14 xl:gap-20">
-          <div className="lg:sticky lg:top-[6.5rem]">
-            <div className="relative h-[460px] w-full overflow-hidden bg-[#07090a] sm:h-[600px] md:h-[680px] lg:h-[calc(100svh-7rem)] lg:min-h-[620px] lg:max-h-[880px]">
-              <Canvas
-                className="cursor-grab active:cursor-grabbing"
-                dpr={[1, 1.5]}
-                shadows
-                frameloop={sceneActive ? "always" : "never"}
-                camera={{
-                  position: [13.2, 8.6, 25.6],
-                  fov: 34,
-                  near: 0.1,
-                  far: 110,
-                }}
-                gl={{
-                  antialias: true,
-                  alpha: false,
-                  powerPreference: "high-performance",
-                }}
+        <div className="absolute inset-x-0 top-[11.5rem] h-[54svh]">
+          <Canvas
+            style={{ touchAction: "pan-y" }}
+            dpr={[1, 1.5]}
+            shadows
+            frameloop={sceneActive ? "always" : "never"}
+            camera={{
+              position: [0, 14.2, 44.4],
+              fov: 34,
+              near: 0.1,
+              far: 130,
+            }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: "high-performance",
+            }}
+          >
+            <Scene progressRef={progressRef} reducedMotion={reducedMotion} compact />
+          </Canvas>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[52svh] bg-gradient-to-t from-black via-black/85 to-transparent" />
+
+        <div className="pointer-events-none absolute right-4 top-48 flex flex-col gap-1.5">
+          {INSTALLATION_STEPS.map((step, index) => (
+            <span
+              key={step.title}
+              className={`h-4 w-[3px] rounded-full transition-colors duration-300 motion-reduce:transition-none ${
+                index <= activeIndex ? "bg-white" : "bg-white/25"
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-8">
+          <div className="relative min-h-[236px]" style={{ perspective: "900px" }}>
+            {INSTALLATION_STEPS.map((step, index) => (
+              <div
+                key={step.title}
+                aria-hidden={activeIndex !== index}
+                className={`absolute inset-x-0 bottom-0 rounded-2xl border border-white/10 bg-black/55 p-4 backdrop-blur-md transition-[transform,opacity] duration-[650ms] ease-[cubic-bezier(0.22,0.8,0.24,1)] [backface-visibility:hidden] [transform-origin:50%_100%] [transform-style:preserve-3d] motion-reduce:transition-none ${
+                  activeIndex === index
+                    ? "[transform:rotateX(0deg)] opacity-100"
+                    : index < activeIndex
+                      ? "[transform:rotateX(88deg)] opacity-0"
+                      : "[transform:rotateX(-88deg)] opacity-0"
+                }`}
               >
-                <Scene
-                  progressRef={progressRef}
-                  reducedMotion={reducedMotion}
-                />
-              </Canvas>
-
-              <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/70 backdrop-blur-md sm:left-6 sm:top-6">
-                Drag to rotate
-              </div>
-
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent px-5 pb-5 pt-24 sm:px-7 sm:pb-7">
-                <div className="flex items-end justify-between gap-6">
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55">
-                      Stage {String(activeIndex + 1).padStart(2, "0")}
-                    </span>
-
-                    <p className="mt-2 max-w-[460px] text-lg font-medium tracking-[-0.025em] text-white sm:text-xl">
-                      {INSTALLATION_STEPS[activeIndex].title}
-                    </p>
-                  </div>
-
-                  <span className="text-sm font-medium text-white/55">
-                    {activeIndex + 1}/{INSTALLATION_STEPS.length}
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/70 bg-black/60 text-base font-medium text-white backdrop-blur-sm">
+                    {index + 1}
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
+                    Stage {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
                   </span>
                 </div>
+
+                <h3 className="mt-4 bg-gradient-to-r from-[#fd8d94] to-[#7a6ee6] bg-clip-text pb-[0.1em] text-[clamp(1.9rem,8.4vw,2.6rem)] font-medium leading-[1.08] tracking-[-0.05em] text-transparent">
+                  {step.title}
+                </h3>
+
+                <p className="mt-3 text-[15px] leading-6 text-white/85">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      ref={sectionRef}
+      id="installation"
+      className="relative h-svh overflow-clip bg-black text-white"
+      aria-labelledby="installation-title"
+    >
+      <div className="container-x flex h-full flex-col pb-6 pt-24 lg:pt-28">
+        <header className="mx-auto shrink-0 max-w-4xl text-center">
+          <p className="text-[clamp(1.25rem,1.8vw,1.8rem)] font-medium leading-tight tracking-[-0.025em] text-white/80">
+            From Ground to Sky
+          </p>
+
+          <h2
+            id="installation-title"
+            className="mt-2 text-[clamp(2.35rem,3.8vw,3.75rem)] font-normal leading-[1] tracking-[-0.045em] text-white"
+          >
+            The installation journey.
+          </h2>
+        </header>
+
+        <div className="mx-auto mt-6 grid min-h-0 w-full max-w-[1520px] flex-1 gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14 xl:gap-20">
+          <div className="relative min-h-0 overflow-hidden bg-[#07090a]">
+            <Canvas
+              className="cursor-grab active:cursor-grabbing"
+              dpr={[1, 1.5]}
+              shadows
+              frameloop={sceneActive ? "always" : "never"}
+              camera={{
+                position: [0, 9.2, 28.8],
+                fov: 34,
+                near: 0.1,
+                far: 110,
+              }}
+              gl={{
+                antialias: true,
+                alpha: false,
+                powerPreference: "high-performance",
+              }}
+            >
+              <Scene progressRef={progressRef} reducedMotion={reducedMotion} />
+            </Canvas>
+
+            <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/70 backdrop-blur-md sm:left-6 sm:top-6">
+              Drag to rotate
+            </div>
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent px-5 pb-5 pt-24 sm:px-7 sm:pb-7">
+              <div className="flex items-end justify-between gap-6">
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55">
+                    Stage {String(activeIndex + 1).padStart(2, "0")}
+                  </span>
+
+                  <p className="mt-2 max-w-[460px] text-lg font-medium tracking-[-0.025em] text-white sm:text-xl">
+                    {INSTALLATION_STEPS[activeIndex].title}
+                  </p>
+                </div>
+
+                <span className="text-sm font-medium text-white/55">
+                  {activeIndex + 1}/{total}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="relative min-w-0">
-            {/* Small mask blends the previous stage's number circle as it
-                scrolls under the sticky label. It intentionally stops well
-                short of the main "installation journey." heading above —
-                the mt-20/lg:mt-28 gap on the grid already keeps that heading
-                clear of the sticky layout, so this mask must never grow
-                tall enough to reach back up into it. */}
-            <div className="sticky top-[5.9rem] z-20 bg-black">
-              <div className="pointer-events-none absolute inset-x-0 bottom-full h-8 bg-black" />
+          <div className="relative grid min-h-0 min-w-0 grid-cols-[64px_minmax(0,1fr)] sm:grid-cols-[80px_minmax(0,1fr)]">
+            <p className="absolute left-0 right-0 top-0 z-10 border-b border-white/10 bg-black py-4 pl-[64px] text-xl font-semibold tracking-[-0.03em] text-white sm:pl-[80px] sm:text-2xl">
+              Installation Stage
+            </p>
 
-              <div className="relative grid grid-cols-[64px_minmax(0,1fr)] items-center border-b border-white/10 bg-black py-5 sm:grid-cols-[80px_minmax(0,1fr)] lg:py-6">
-                <div aria-hidden="true" />
+            {/* One timeline column: the line and every number share the same
+                centre axis. */}
+            <div className="relative pb-6 pt-[4.5rem]">
+              <div className="absolute bottom-6 left-1/2 top-[4.5rem] w-px -translate-x-1/2 bg-white/[0.22]" />
 
-                <p className="text-xl font-semibold lowercase tracking-[-0.03em] text-white sm:text-2xl">
-                  installation stage
-                </p>
-              </div>
-
-              <div className="pointer-events-none absolute inset-x-0 top-full h-16 bg-gradient-to-b from-black via-black/95 to-transparent" />
-            </div>
-
-            <div className="relative pb-[24svh] pt-[12svh]">
-              <div className="absolute bottom-0 left-8 top-0 w-px -translate-x-1/2 bg-white/[0.22] sm:left-10" />
-
-              {INSTALLATION_STEPS.map((step, index) => (
-                <article
-                  key={step.title}
-                  ref={(element) => {
-                    stepRefs.current[index] = element;
-                  }}
-                  className="relative grid min-h-[62svh] grid-cols-[64px_minmax(0,1fr)] items-center py-10 first:min-h-[58svh] last:min-h-[58svh] sm:grid-cols-[80px_minmax(0,1fr)] lg:min-h-[68svh]"
-                >
-                  <div className="relative flex h-full items-center justify-center">
+              <div className="relative flex h-full flex-col items-center justify-between">
+                {INSTALLATION_STEPS.map((step, index) => (
+                  <button
+                    key={step.title}
+                    type="button"
+                    onClick={() => goToRef.current?.(index)}
+                    aria-label={`Go to stage ${index + 1}: ${step.title}`}
+                    aria-current={activeIndex === index ? "step" : undefined}
+                    className="relative z-10 grid place-items-center"
+                  >
                     <span
                       ref={(element) => {
                         numberRefs.current[index] = element;
                       }}
-                      className="relative z-10 grid h-12 w-12 place-items-center rounded-full border border-white/70 bg-black text-lg font-medium text-white shadow-[0_0_0_8px_rgba(255,255,255,0.025)] will-change-transform sm:h-14 sm:w-14 sm:text-xl"
+                      className="grid h-10 w-10 place-items-center rounded-full border border-white/70 bg-black text-base font-medium text-white shadow-[0_0_0_6px_rgba(255,255,255,0.025)] will-change-transform sm:h-11 sm:w-11"
                     >
                       {index + 1}
                     </span>
-                  </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <button
-                    type="button"
-                    onClick={() => scrollToStep(index)}
-                    className="min-w-0 pr-2 text-left"
-                    aria-current={activeIndex === index ? "step" : undefined}
-                  >
+            <div className="relative min-w-0 pt-[4.5rem]">
+              {INSTALLATION_STEPS.map((step, index) => (
+                <div
+                  key={step.title}
+                  aria-hidden={activeIndex !== index}
+                  className="pointer-events-none absolute inset-x-0 bottom-6 top-[4.5rem] flex items-center"
+                >
+                  <div className="min-w-0 pr-2">
                     <h3
                       ref={(element) => {
                         titleRefs.current[index] = element;
                       }}
-                      className="max-w-[760px] overflow-visible bg-gradient-to-r from-[#fd8d94] to-[#7a6ee6] bg-clip-text pb-[0.12em] text-[clamp(2.8rem,5vw,5.7rem)] font-medium leading-[1.08] tracking-[-0.06em] text-transparent will-change-transform"
+                      className="max-w-[760px] overflow-visible bg-gradient-to-r from-[#fd8d94] to-[#7a6ee6] bg-clip-text pb-[0.12em] text-[clamp(2.1rem,4.4vw,5.1rem)] font-medium leading-[1.08] tracking-[-0.06em] text-transparent will-change-transform"
                     >
                       {step.title}
                     </h3>
@@ -1984,18 +1939,10 @@ export function GroundToSkySection() {
                     >
                       {step.description}
                     </p>
-                  </button>
-                </article>
+                  </div>
+                </div>
               ))}
             </div>
-
-            {/* Holds Stage 8 centred (and the 3D model + sticky panels
-                engaged) for a controlled distance before the section
-                releases into normal scrolling. */}
-            <div
-              aria-hidden="true"
-              className="h-[22svh] lg:h-[48svh]"
-            />
           </div>
         </div>
       </div>
@@ -2003,4 +1950,4 @@ export function GroundToSkySection() {
   );
 }
 
-export default GroundToSkySection; 
+export default GroundToSkySection;

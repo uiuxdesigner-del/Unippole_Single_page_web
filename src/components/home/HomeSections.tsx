@@ -36,6 +36,7 @@ import ScrollFloat from "@/components/text/ScrollFloat";
 import { BrandButton } from "@/components/ui/BrandButton";
 import { useCampaignPlan } from "@/context/CampaignPlanContext";
 import { scrollToHash } from "@/hooks/useLenis";
+import { useStepScroller } from "@/hooks/useStepScroller";
 
 import styles from "./HeroSection.module.css";
 
@@ -305,87 +306,17 @@ export function WhatIsUnipoleSection() {
         feature.id === activeFeatureId,
     ) ?? aboutFeatures[0];
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    const pinnedContent =
-      pinnedContentRef.current;
-
-    if (!section || !pinnedContent) {
-      return;
-    }
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const media = gsap.matchMedia();
-
-    media.add(
-      "(min-width: 1024px)",
-      () => {
-        let previousIndex = -1;
-
-        const scrollTrigger =
-          ScrollTrigger.create({
-            trigger: section,
-            start: "top 72px",
-            end: () =>
-              `+=${Math.max(
-                window.innerHeight * 1.35,
-                900,
-              )}`,
-            pin: reducedMotion
-              ? false
-              : pinnedContent,
-            pinSpacing: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-
-            onUpdate: (self) => {
-              const nextIndex =
-                Math.min(
-                  aboutFeatures.length - 1,
-                  Math.floor(
-                    self.progress *
-                      aboutFeatures.length,
-                  ),
-                );
-
-              if (
-                nextIndex ===
-                previousIndex
-              ) {
-                return;
-              }
-
-              previousIndex = nextIndex;
-
-              setActiveFeatureId(
-                aboutFeatures[nextIndex]
-                  .id,
-              );
-            },
-          });
-
-        return () => {
-          scrollTrigger.kill();
-        };
-      },
-    );
-
-    const refreshFrame =
-      window.requestAnimationFrame(
-        () => {
-          ScrollTrigger.refresh();
-        },
-      );
-
-    return () => {
-      window.cancelAnimationFrame(
-        refreshFrame,
-      );
-
-      media.revert();
-    };
-  }, [reducedMotion]);
+  /* Inner scroll (like the hero): on desktop the wheel / swipe / keys step the
+     active feature while the section fills the screen. The page scrollbar
+     never sees that length. */
+  useStepScroller(sectionRef, {
+    count: aboutFeatures.length,
+    minWidth: 1024,
+    instantWhenReduced: true,
+    stepDuration: 0.45,
+    onValue: () => {},
+    onIndex: (index) => setActiveFeatureId(aboutFeatures[index].id),
+  });
 
   useEffect(() => {
     const description =
@@ -434,10 +365,10 @@ export function WhatIsUnipoleSection() {
     <section
       ref={sectionRef}
       id="about"
-      className="bg-white pb-20 pt-8 md:pb-24 md:pt-10 lg:pb-28 lg:pt-12"
+      className="bg-white pb-20 pt-8 md:pb-24 md:pt-10 lg:flex lg:min-h-svh lg:items-center lg:pb-0 lg:pt-0"
       aria-labelledby="about-unipole-title"
     >
-      <div className="container-x">
+      <div className="container-x lg:w-full">
         <div
           ref={pinnedContentRef}
           className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-16 xl:gap-24"
