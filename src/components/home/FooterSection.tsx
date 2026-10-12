@@ -712,17 +712,7 @@ export function FooterSection() {
 
           <div className="mt-1 flex flex-col gap-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800 sm:text-base lg:flex-row lg:items-center lg:justify-between">
             <p>
-              ©{" "}
-              <span
-                suppressHydrationWarning
-                ref={(element) => {
-                  // The page is prerendered; refresh the year in the browser so it never goes stale.
-                  if (element) element.textContent = String(new Date().getFullYear());
-                }}
-              >
-                {year}
-              </span>{" "}
-              Adinn Advertising
+              © {year} Adinn Advertising
               Services Ltd.
             </p>
 
